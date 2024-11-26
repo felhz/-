@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      class Single {
+        static getInstance() {
+          if (Single.instance) return Single.instance;
+          Single.instance = new Single();
+          return Single.instance;
+        }
+        constructor() {
+          this.name = 11;
+        }
+      }
+      const single1 = Single.getInstance();
+      const single2 = Single.getInstance();
+      console.log(single1 === single2);
+
+      const bubbleSort = (arr) => {
+        for (let i = 0; i < arr.length; i++) {
+          for (let j = 0; j < arr.length - i; j++) {
+            if (arr[j] > arr[j + 1]) {
+              const temp = arr[j];
+              arr[j] = arr[j + 1];
+              arr[j + 1] = temp;
+            }
+          }
+        }
+        return arr;
+      };
+      console.log(bubbleSort([12, 2, 10, 20, 1]));
+
+      const insertSort = (arr) => {
+        for (let i = 1; i < arr.length; i++) {
+          let current = arr[i];
+          let j = i - 1;
+          while (j > 0 && arr[j] > current) {
+            arr[j + 1] = arr[j];
+            j--;
+          }
+
+          arr[j + 1] = current;
+        }
+        return arr;
+      };
+      console.log(insertSort([1, 10, 5, 9, 20]));
+    </script>
+  </body>
+</html>

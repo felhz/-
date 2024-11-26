@@ -7,7 +7,9 @@
 
     </div>
     <script>
-     
+       requestIdleCallback(()=>{
+      console.log(111);
+    })
      class Singleton {
       constructor(name) {
           this.name = name;
@@ -28,6 +30,7 @@
     const single1 = Singleton.getInstance("1")
     console.log(single1);
     const array = [1,10,8,11]
+   
    
     </script>
   </body>
