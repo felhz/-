@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script>
+      window.citys = [
+        {
+          dataCenterName: "北美数据中心",
+          x: 159,
+          y: 184,
+          children: [
+            {
+              x: 112,
+              y: 129,
+              cp1: {
+                x: 50,
+                y: -100,
+              },
+            },
+            {
+              x: 210,
+              y: 171,
+            },
+            {
+              x: 233,
+              y: 226,
+            },
+            {
+              x: 265,
+              y: 330,
+              cp1: {
+                x: 120,
+                y: 100,
+              },
+            },
+            {
+              x: 294,
+              y: 367,
+              cp1: {
+                x: -50,
+                y: 200,
+              },
+            },
+          ],
+        },
+        {
+          dataCenterName: "欧州数据中心",
+          x: 503,
+          y: 125,
+          children: [
+            {
+              x: 267,
+              y: 145,
+            },
+            {
+              x: 503,
+              y: 181,
+            },
+            {
+              x: 549,
+              y: 108,
+            },
+          ],
+        },
+        {
+          dataCenterName: "中东数据中心",
+          x: 586,
+          y: 241,
+          children: [
+            {
+              x: 590,
+              y: 142,
+            },
+            {
+              x: 538,
+              y: 393,
+            },
+            {
+              x: 612,
+              y: 232,
+            },
+            {
+              x: 556,
+              y: 324,
+            },
+            {
+              x: 510,
+              y: 295,
+            },
+            {
+              x: 835,
+              y: 395,
+            },
+          ],
+        },
+        {
+          dataCenterName: "中国数据中心",
+          x: 765,
+          y: 184,
+          children: [
+            {
+              x: 729,
+              y: 147,
+            },
+            {
+              x: 788,
+              y: 214,
+            },
+            {
+              x: 809,
+              y: 137,
+            },
+            {
+              x: 818,
+              y: 180,
+            },
+          ],
+        },
+        {
+          dataCenterName: "东南亚数据中心",
+          x: 750,
+          y: 268,
+          children: [
+            {
+              x: 694,
+              y: 255,
+            },
+          ],
+        },
+      ];
+    </script>
+    <style>
+      #container {
+        width: 100%;
+        height: 100vh;
+        overflow: auto;
+      }
+      #map {
+        touch-action: pan-y !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <canvas id="map"></canvas>
+    </div>
+    <script src="/js/antg.js"></script>
+    <script src="/js/canvas.js"></script>
+    <script>
+      // 从核心包中引入画布、Circle 等对象
+      const { Circle, Canvas, CanvasEvent, Group, Image, Path, Text } =
+        window.G;
+
+      const MAP_CONFIG = {
+        BG: "/img/bg.png",
+        BOARD: "/img/board.png",
+      };
+
+      class EarthMap {
+        rootGroup = null;
+        canvas = null;
+        constructor(id) {
+          const canvasRenderer = new window.G.Canvas2D.Renderer();
+          this.rootGroup = new Group({
+            name: "rootGroup",
+          });
+          this.canvas = new Canvas({
+            canvas: document.getElementById(id),
+            width: 800,
+            height: 5000,
+            renderer: canvasRenderer,
+          });
+
+          this.canvas.addEventListener(CanvasEvent.READY, () => {
+            this.createMapBg();
+            this.renderData();
+            this.canvas.appendChild(this.rootGroup);
+
+            this.hideAntLine();
+            this.showDataBoard();
+          });
+        }
+        createMapBg() {
+          const bgImage = new Image({
+            style: {
+              src: MAP_CONFIG.BG,
+            },
+          });
+          this.rootGroup.appendChild(bgImage);
+        }
+        renderData() {
+          const createRipple = (config) => {
+            let group = new Group({ name: "rippleGroup" });
+            Array(2)
+              .fill(0)
+              .forEach((_, i) => {
+                const circle = new Circle({
+                  style: {
+                    ...config.style,
+                  },
+                });
+                group.appendChild(circle);
+              });
+            return group;
+          };
+          const createData = () => {
+            citys.forEach((dataCenter) => {
+              let name = dataCenter.dataCenterName;
+              let childs = dataCenter.children;
+              let dcGroup = new Group({ name: "dataCenterBoard" });
+              let boardBg = new Image({
+                style: {
+                  src: MAP_CONFIG.BOARD,
+                  width: 120,
+                  height: 50,
+                  x: dataCenter.x - 60,
+                  y: dataCenter.y - 30,
+                },
+              });
+              let text = new Text({
+                style: {
+                  text: name,
+                  x: dataCenter.x,
+                  y: dataCenter.y,
+                  textAlign: "center",
+                  fontSize: 14,
+                  opacity: 1,
+                },
+              });
+              text.addEventListener("click", (e) => {
+                console.log(e.clientX, e.screenX, e.pageX);
+              });
+              const dataCenterCircle = createRipple({
+                style: {
+                  cx: dataCenter.x,
+                  cy: dataCenter.y,
+                  r: 20,
+                  fill: "#1d1df3",
+                },
+              });
+              dcGroup.appendChild(boardBg);
+              dcGroup.appendChild(text);
+              dcGroup.translateLocal(0, -40);
+              childs.forEach((city) => {
+                const cityCircle = createRipple({
+                  style: {
+                    cx: city.x,
+                    cy: city.y,
+                    r: 10,
+                    fill: "#58D684",
+                  },
+                });
+                this.rootGroup.appendChild(cityCircle);
+                let line = new Path({
+                  name: "antline",
+                  style: {
+                    d: [
+                      ["M", dataCenter.x, dataCenter.y],
+                      ["Q", city.x - 30, city.y - 100, city.x, city.y],
+                    ],
+                    stroke: "#58D586",
+                    lineDash: [10, 10],
+                  },
+                });
+
+                this.rootGroup.appendChild(line);
+              });
+
+              this.rootGroup.appendChild(dataCenterCircle);
+              this.rootGroup.appendChild(dcGroup);
+            });
+          };
+          createData();
+        }
+        hideAntLine() {
+          this.canvas.document.getElementsByName("antline").forEach((line) => {
+            line.hide();
+          });
+          this.canvas.document
+            .getElementsByName("rippleGroup")
+            .forEach((group) => {
+              group.hide();
+            });
+        }
+        async showDataBoard() {
+          let canvas = this.canvas;
+          let lastSprite = null;
+          canvas.document
+            .getElementsByName("dataCenterBoard")
+            .forEach((dcboard) => {
+              lastSprite = dcboard.animate(
+                [
+                  { transform: "translateY(100%)" },
+                  { transform: "translateY(-40)" },
+                ],
+                {
+                  duration: 1000,
+                  fill: "both",
+                  easeing: "ease-out",
+                }
+              );
+              dcboard.children.forEach((sprite, index) => {
+                if (index === 1) {
+                  sprite.animate([{ opacity: 0 }, { opacity: 1 }], {
+                    duration: 1000,
+                    fill: "both",
+                    easeing: "ease-out",
+                  });
+                }
+              });
+            });
+          await lastSprite.finished;
+          canvas.document.getElementsByName("antline").forEach((line) => {
+            line.show();
+          });
+          canvas.document.getElementsByName("rippleGroup").forEach((group) => {
+            group.show();
+          });
+          this.startAnime();
+        }
+        startAnime() {
+          let canvas = this.canvas;
+          canvas.document.getElementsByName("antline").forEach((line) => {
+            line.animate([{ lineDashOffset: 20 }, { lineDashOffset: 0 }], {
+              duration: 500,
+              iterations: Infinity,
+            });
+          });
+          canvas.document.getElementsByName("rippleGroup").forEach((group) => {
+            group.children.map((circle, i) => {
+              circle.style.opacity = 0.1;
+              circle.style.fill = "red";
+              circle.animate([{ r: 0 }, { r: circle.attributes.r }], {
+                duration: 2000,
+                iterations: Infinity,
+              });
+            });
+          });
+        }
+      }
+
+      const map = new EarthMap("map");
+      map.rootGroup.translate(100);
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-import { PrismaClient } from './prisma/generated/prisma-client-js';
+const {PrismaClient} = require('./prisma/generated/prisma-client-js');
 const prisma = new PrismaClient();
 prisma.rcloud_admin_role.findMany().then((users) => {
   console.log(users);
