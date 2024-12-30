@@ -1,7 +1,15 @@
-const {PrismaClient} = require('./prisma/generated/prisma-client-js');
+const {PrismaClient} = require('./dev/devgenerated/prisma-client-js');
 const prisma = new PrismaClient();
-prisma.rcloud_admin_role.findMany().then((users) => {
-  console.log(users);
+// prisma.rcloud_admin_role.findMany({
+//   where: {
+//     role_name: '工单标签'
+//   }
+// }).then((users) => {
+
+//   console.log(users);
+// })
+prisma.$queryRaw`select * from mp_menu`.then((users) => {
+  console.log(users); 
 })
 
 // prisma.table

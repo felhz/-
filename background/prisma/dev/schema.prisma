@@ -1,11 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/prisma-client-js"
+  output   = "./devgenerated/prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL_DEV")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -20,6 +20,15 @@ model add_rcloud_user_follow_record {
   ctime    Int
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model appkey_trans {
+  server_id Int @id @db.UnsignedInt
+  app_id    Int @db.UnsignedInt
+  env       Int @db.UnsignedTinyInt
+
+  @@index([app_id], map: "app_id")
+}
+
 model cc_exclusivelog {
   id          Int       @id @default(autoincrement())
   appId       String    @db.VarChar(45)
@@ -28,15 +37,6 @@ model cc_exclusivelog {
   disableTime DateTime? @db.Timestamp(0)
 
   @@unique([appId, status], map: "appId_status")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model cl_test {
-  orgId Int
-  dau   Int
-
-  @@ignore
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -62,13 +62,13 @@ model dcp_private_customer {
   sale_mobile     String   @default("") @db.VarChar(32)
   type            Int      @default(1) @db.UnsignedTinyInt
   remark          String   @default("") @db.VarChar(256)
+  config          String?  @db.Text
   is_self_develop Int      @default(0) @db.UnsignedTinyInt
   status          Int      @default(1) @db.TinyInt
   create_by       Int      @default(0) @db.UnsignedInt
   update_by       Int      @default(0) @db.UnsignedInt
   create_time     DateTime @default(now()) @db.Timestamp(0)
   update_time     DateTime @default(now()) @db.Timestamp(0)
-  config          String?  @db.Text
 
   @@index([sale_id], map: "idx_sale_id")
   @@index([user_id], map: "idx_user_id")
@@ -99,12 +99,12 @@ model dcp_private_customer_clue {
   sale_name               String   @default("") @db.VarChar(32)
   source                  Int      @default(1) @db.UnsignedTinyInt
   remark                  String   @default("") @db.VarChar(256)
+  config                  String?  @db.Text
   status                  Int      @default(1) @db.TinyInt
   create_by               Int      @default(0) @db.UnsignedInt
   update_by               Int      @default(0) @db.UnsignedInt
   create_time             DateTime @default(now()) @db.Timestamp(0)
   update_time             DateTime @default(now()) @db.Timestamp(0)
-  config                  String?  @db.Text
 
   @@index([dcp_private_customer_id], map: "idx_customer_id")
   @@index([sale_id], map: "idx_sale_id")
@@ -116,7 +116,7 @@ model dcp_private_customer_license {
   license_id                   Int      @default(0) @db.UnsignedInt
   dcp_private_customer_clue_id Int      @default(0) @db.UnsignedInt
   license_index                String   @default("") @db.VarChar(32)
-  license                      String   @default("") @db.VarChar(256)
+  license                      String   @default("") @db.VarChar(512)
   effective_time               DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.Timestamp(0)
   expire_time                  String   @default("") @db.VarChar(64)
   sale_id                      Int      @default(0) @db.UnsignedInt
@@ -141,7 +141,7 @@ model dcp_private_customer_license_identify {
   id                              Int      @id @default(autoincrement()) @db.UnsignedInt
   dcp_private_customer_license_id Int      @default(0) @db.UnsignedInt
   identify_id                     Int      @default(0)
-  identify                        String   @default("") @db.VarChar(256)
+  identify                        String   @default("") @db.VarChar(512)
   effective_time                  DateTime @default(dbgenerated("'0000-00-00 00:00:00'")) @db.Timestamp(0)
   expire_time                     String   @default("") @db.VarChar(64)
   remark                          String   @db.LongText
@@ -153,7 +153,6 @@ model dcp_private_customer_license_identify {
   create_time                     DateTime @default(now()) @db.Timestamp(0)
   update_time                     DateTime @default(now()) @db.Timestamp(0)
 
-  @@index([identify_id], map: "idx_identify_id")
   @@index([dcp_private_customer_license_id], map: "idx_license_id")
 }
 
@@ -247,827 +246,7 @@ model popc_activity_winner_history {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_alert_contact {
-  id           Int     @id @default(autoincrement())
-  name         String  @db.VarChar(10)
-  org_id       Int
-  country_code String  @default("86") @db.VarChar(10)
-  phone_no     String  @db.VarChar(32)
-  email        String  @db.VarChar(50)
-  deleted      Boolean @default(false)
-  create_by    String? @db.VarChar(32)
-  create_at    BigInt
-  update_at    BigInt?
-
-  @@index([name], map: "popc_alert_contact_name_index")
-  @@index([org_id, deleted], map: "popc_alert_contact_org_id_deleted_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_alert_notification {
-  id        Int       @id @default(autoincrement())
-  log_id    String    @db.VarChar(110)
-  app_id    String    @db.VarChar(10)
-  channel   String    @db.VarChar(10)
-  status    String    @default("INITIAL") @db.VarChar(10)
-  content   String    @db.Text
-  response  String?   @db.Text
-  create_at DateTime? @default(now()) @db.DateTime(0)
-
-  @@index([app_id, log_id], map: "popc_alert_notification_app_id_log_id_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_alert_record {
-  id             Int     @id @default(autoincrement())
-  trace_id       String  @db.VarChar(32)
-  title          String  @db.VarChar(88)
-  contact_name   String  @db.VarChar(10)
-  org_id         Int     @default(0)
-  app_id         Int?
-  data_center    String? @db.VarChar(10)
-  rule_id        Int
-  metric_type    String  @db.VarChar(50)
-  metric_value   String? @db.VarChar(32)
-  alert_status   String  @db.VarChar(10)
-  threshold      Int
-  percentage     Float?
-  is_mute        Boolean @default(false)
-  notify_channel String  @db.VarChar(32)
-  trigger_time   BigInt
-  send_time      BigInt
-  log_id         String? @db.VarChar(110)
-  extra_info     String? @db.MediumText
-  create_at      BigInt
-
-  @@index([create_at, app_id], map: "popc_alert_record_create_at_app_id_index")
-  @@index([trigger_time], map: "rcloud_alert_record_trigger_time_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_alert_rule {
-  id                   Int     @id @default(autoincrement())
-  name                 String  @db.VarChar(32)
-  org_id               Int
-  app_id               Int
-  biz_type             String  @db.VarChar(15)
-  metric_type          String  @db.VarChar(50)
-  metric_config        String  @db.MediumText
-  notify_channels      String  @db.VarChar(32)
-  alert_interval       Int
-  disabled             Boolean @default(false)
-  enabled_days_of_week String  @default("[1,2,3,4,5,6,7]") @db.VarChar(15)
-  enabled_stime        String  @db.VarChar(8)
-  enabled_etime        String  @db.VarChar(8)
-  deleted              Boolean @default(false)
-  contact_id           Int
-  contact_name         String  @db.VarChar(10)
-  webhook_id           Int?
-  create_by            String  @db.VarChar(32)
-  create_at            BigInt
-  update_at            BigInt?
-
-  @@index([contact_id], map: "popc_alert_rule_contact_id_index")
-  @@index([name], map: "popc_alert_rule_name_index")
-  @@index([app_id, biz_type, deleted, disabled, metric_type], map: "popc_join_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_alert_rule_2 {
-  id                   Int     @id @default(autoincrement())
-  name                 String  @db.VarChar(32)
-  org_id               Int
-  app_id               Int
-  metric_type          String  @db.VarChar(10)
-  metric_config        String  @db.MediumText
-  notify_channels      String  @db.VarChar(32)
-  alert_interval       Int
-  disabled             Boolean @default(false)
-  enabled_days_of_week String  @default("[1,2,3,4,5,6,7]") @db.VarChar(15)
-  enabled_stime        String  @db.VarChar(8)
-  enabled_etime        String  @db.VarChar(8)
-  deleted              Boolean @default(false)
-  contact_id           Int
-  contact_name         String  @db.VarChar(10)
-  create_by            String  @db.VarChar(32)
-  create_at            BigInt
-  update_at            BigInt?
-
-  @@index([contact_id], map: "popc_alert_rule_contact_id_index")
-  @@index([name], map: "popc_alert_rule_name_index")
-  @@index([app_id, metric_type, deleted, disabled], map: "popc_join_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_alert_webhook {
-  id          BigInt    @id @default(autoincrement())
-  type        String    @db.VarChar(10)
-  webhook_url String    @db.VarChar(255)
-  status      Int       @default(1) @db.TinyInt
-  create_at   DateTime? @default(now()) @db.DateTime(0)
-  update_at   DateTime? @db.DateTime(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_api_freq {
-  id                 Int       @id @default(autoincrement())
-  api                String    @db.VarChar(255)
-  api_name           String    @db.VarChar(50)
-  default_frequency  Int
-  unit_frequency     Int       @default(0)
-  service_id         Int       @default(0)
-  oversea_service_id Int       @default(0)
-  time_unit          String    @db.VarChar(10)
-  tunable            Boolean   @default(false)
-  frequency_desc     String?   @db.VarChar(100)
-  create_at          DateTime  @default(now()) @db.DateTime(0)
-  update_at          DateTime? @db.DateTime(0)
-
-  @@index([service_id], map: "popc_api_freq_service_id_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_api_freq_bak {
-  id                Int       @id @default(autoincrement())
-  api               String    @db.VarChar(255)
-  api_name          String    @db.VarChar(50)
-  default_frequency Int
-  unit_frequency    Int       @default(0)
-  service_id        Int       @default(0)
-  time_unit         String    @db.VarChar(10)
-  tunable           Boolean   @default(false)
-  frequency_desc    String?   @db.VarChar(100)
-  create_at         DateTime  @default(now()) @db.DateTime(0)
-  update_at         DateTime? @db.DateTime(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_app_migrate {
-  id           Int      @id @default(autoincrement())
-  old_org_id   Int      @default(0)
-  new_org_id   Int      @default(0)
-  app_id       Int      @default(0)
-  database     String   @default("") @db.VarChar(100)
-  table        String   @default("") @db.VarChar(100)
-  update_sql   String   @default("") @db.VarChar(500)
-  count_sql    String   @default("") @db.VarChar(500)
-  max_id_sql   String   @default("") @db.VarChar(500)
-  update_count Int      @default(0)
-  expect_count Int      @default(0)
-  max_id       Int      @default(0)
-  create_time  DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_common_activity {
-  id            BigInt  @id @default(autoincrement())
-  code          String? @default("") @db.VarChar(100)
-  name          String  @default("") @db.VarChar(100)
-  description   String  @default("") @db.VarChar(500)
-  config        Json?
-  start_date    Int     @default(0)
-  end_date      Int     @default(0)
-  status        Int     @default(0) @db.TinyInt
-  creation_time BigInt  @default(0)
-  update_time   BigInt  @default(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_common_activity_user {
-  id            BigInt  @id @default(autoincrement())
-  org_id        BigInt  @default(0)
-  user_id       BigInt  @default(0)
-  app_id        BigInt  @default(0)
-  item_id       BigInt? @default(0)
-  activity_id   BigInt  @default(0)
-  config        Json?
-  status        Int     @default(0) @db.TinyInt
-  remark        String  @default("") @db.VarChar(500)
-  creation_time BigInt  @default(0)
-  update_time   BigInt  @default(0)
-
-  @@index([org_id], map: "IDX_org_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_config {
-  id            BigInt  @id @default(autoincrement())
-  org_id        BigInt  @default(0)
-  app_id        BigInt  @default(0)
-  key           String  @db.VarChar(63)
-  val           String  @db.VarChar(255)
-  status        Int     @default(1) @db.TinyInt
-  description   String? @db.VarChar(127)
-  source        Int     @db.TinyInt
-  creation_time BigInt
-  update_time   BigInt
-
-  @@index([org_id, key], map: "popc_conf_org")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_confirm_popup {
-  id            BigInt @id @default(autoincrement())
-  org_id        BigInt @default(0)
-  user_id       BigInt @default(0)
-  app_id        BigInt @default(0)
-  type          String @default("") @db.VarChar(255)
-  version       Int    @default(0)
-  value         String @default("") @db.VarChar(255)
-  creation_time BigInt
-  update_time   BigInt
-
-  @@index([org_id], map: "IDX_org_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_error_code {
-  id         Int      @id @default(autoincrement())
-  error_code Int
-  code_type  String   @db.VarChar(10)
-  message_cn String   @db.VarChar(100)
-  message_en String   @db.VarChar(110)
-  detail_cn  String   @db.Text
-  detail_en  String   @db.Text
-  create_at  DateTime @default(now()) @db.DateTime(0)
-
-  @@index([code_type], map: "popc_error_code_code_type_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_imrobot_config {
-  id             BigInt  @id @default(autoincrement())
-  app_id         BigInt
-  supplier_id    BigInt
-  config_json    Json
-  secret_id      BigInt
-  model_id       BigInt
-  model          String  @db.VarChar(64)
-  name           String  @db.VarChar(64)
-  im_user_id     String  @db.VarChar(64)
-  profile_photo  String  @db.VarChar(1024)
-  status         Int?    @db.TinyInt
-  last_user_id   BigInt
-  description    String? @db.VarChar(255)
-  creation_time  BigInt
-  update_time    BigInt
-  context_length Int     @default(0) @db.TinyInt
-  data_center    String  @db.VarChar(16)
-
-  @@index([app_id], map: "imrobot_app")
-  @@index([supplier_id], map: "imrobot_supplier")
-  @@index([update_time], map: "imrobot_update_time")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_imrobot_model {
-  id               BigInt  @id @default(autoincrement())
-  code             String  @db.VarChar(32)
-  supplier_id      BigInt
-  model            String  @db.VarChar(64)
-  online_status    Int     @default(1) @db.TinyInt
-  available_status Int     @default(1) @db.TinyInt
-  description      String? @db.VarChar(255)
-  creation_time    BigInt
-  update_time      BigInt
-
-  @@index([supplier_id], map: "imrobot_supplier")
-  @@index([update_time], map: "imrobot_update_time")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_imrobot_secret {
-  id            BigInt  @id @default(autoincrement())
-  supplier_id   BigInt
-  config_json   Json
-  app_id        BigInt
-  status        Int?    @db.TinyInt
-  last_user_id  BigInt
-  description   String? @db.VarChar(255)
-  creation_time BigInt
-  update_time   BigInt
-  data_center   String  @db.VarChar(16)
-
-  @@index([app_id], map: "imrobot_app")
-  @@index([supplier_id], map: "imrobot_supplier")
-  @@index([update_time], map: "imrobot_update_time")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_imrobot_supplier {
-  id               BigInt  @id @default(autoincrement())
-  code             String  @db.VarChar(32)
-  name_zh          String  @default("") @db.VarChar(32)
-  name_en          String  @default("") @db.VarChar(32)
-  scope            String  @default("all") @db.VarChar(32)
-  online_status    Int     @default(1) @db.TinyInt
-  available_status Int     @default(1) @db.TinyInt
-  description      String? @db.VarChar(255)
-  creation_time    BigInt
-  update_time      BigInt
-
-  @@index([update_time], map: "imrobot_update_time")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_menu {
-  id            BigInt  @id @default(autoincrement())
-  name_zh       String  @default("") @db.VarChar(31)
-  name_en       String  @default("") @db.VarChar(31)
-  icon          String? @default("") @db.VarChar(31)
-  p_id          BigInt
-  code          String? @unique(map: "menu_code") @db.VarChar(31)
-  description   String? @default("") @db.VarChar(2048)
-  l_path        String? @default("") @db.VarChar(255)
-  doc           String? @default("") @db.VarChar(255)
-  p_path        String  @default("") @db.VarChar(127)
-  type          String  @db.VarChar(15)
-  status        Int     @default(1) @db.TinyInt
-  weigh         Int     @default(0)
-  summary       String? @db.VarChar(2048)
-  sub_function  String? @db.LongText
-  creation_time BigInt
-
-  @@index([p_path], map: "menu_path")
-  @@index([p_id], map: "menu_pid")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_menu_20231114 {
-  id            BigInt  @id @default(autoincrement())
-  name_zh       String  @default("") @db.VarChar(31)
-  name_en       String  @default("") @db.VarChar(31)
-  icon          String? @default("") @db.VarChar(31)
-  p_id          BigInt
-  code          String? @unique(map: "menu_code") @db.VarChar(31)
-  description   String? @default("") @db.VarChar(511)
-  l_path        String? @default("") @db.VarChar(255)
-  doc           String? @default("") @db.VarChar(255)
-  p_path        String  @default("") @db.VarChar(127)
-  type          String  @db.VarChar(15)
-  status        Int     @default(1) @db.TinyInt
-  weigh         Int     @default(0)
-  creation_time BigInt
-
-  @@index([p_path], map: "menu_path")
-  @@index([p_id], map: "menu_pid")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_menu_function {
-  id          BigInt  @id @default(autoincrement())
-  name_zh     String  @default("") @db.VarChar(100)
-  menu_code   String  @db.VarChar(31)
-  summary     String? @default("") @db.VarChar(2048)
-  status      Int     @default(1) @db.TinyInt
-  create_time BigInt
-
-  @@index([menu_code], map: "fk_menu_code")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_menu_url {
-  id            BigInt @id @default(autoincrement())
-  menu_id       BigInt
-  service       String @db.VarChar(31)
-  method        String @db.VarChar(15)
-  url           String @db.VarChar(255)
-  creation_time BigInt
-  status        Int    @default(1) @db.TinyInt
-
-  @@index([menu_id], map: "popc_m_u_menu")
-  @@index([url], map: "popc_m_u_url")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_email_history {
-  id           Int      @id @default(autoincrement())
-  task_id      Int
-  user_id      BigInt
-  account_type Int
-  account_id   BigInt
-  email        String   @default("") @db.VarChar(512)
-  title        String   @default("") @db.VarChar(255)
-  content      String   @db.LongText
-  created      DateTime @default(now()) @db.Timestamp(0)
-
-  @@index([account_id], map: "ix_account_id")
-  @@index([task_id], map: "ix_task_id")
-  @@index([user_id], map: "ix_user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_inbox {
-  id           Int                    @id @default(autoincrement())
-  task_id      Int
-  user_id      BigInt
-  account_type Int
-  account_id   BigInt
-  type         popc_notice_inbox_type
-  title        String                 @default("") @db.VarChar(255)
-  content      String                 @db.LongText
-  read_status  Int                    @default(0)
-  read_time    DateTime?              @db.Timestamp(0)
-  created      DateTime               @default(now()) @db.Timestamp(0)
-  is_del       Int                    @default(0)
-
-  @@index([account_id], map: "ix_account_id")
-  @@index([task_id], map: "ix_task_id")
-  @@index([user_id], map: "ix_user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_send_direct {
-  id          Int      @id @default(autoincrement())
-  template_id Int
-  param       String?  @db.LongText
-  range       String   @db.LongText
-  send_mode   String   @db.VarChar(16)
-  remarks     String?  @db.VarChar(255)
-  status      Int
-  exec_time   DateTime @default(now()) @db.Timestamp(0)
-  task_id     Int
-  operator    String   @db.VarChar(255)
-  created     DateTime @default(now()) @db.Timestamp(0)
-
-  @@index([task_id], map: "ix_task_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_send_history {
-  id           Int      @id @default(autoincrement())
-  task_id      Int?
-  user_id      BigInt?
-  app_id       BigInt?
-  account_type Int
-  account_id   BigInt
-  mode         Int
-  target       String?  @db.VarChar(512)
-  title        String   @default("") @db.VarChar(255)
-  content      String   @db.LongText
-  result       String?  @db.Text
-  created      DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_subscription {
-  id            Int                                     @id @default(autoincrement())
-  template_type popc_notice_subscription_template_type?
-  template_id   Int?
-  send_mode     String                                  @db.VarChar(16)
-  user_id       BigInt
-  account_type  Int
-  account_id    BigInt
-  status        Int
-  operator      String?                                 @default("") @db.VarChar(255)
-  updated       DateTime                                @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_task {
-  id               Int       @id @default(autoincrement())
-  template_id      Int
-  template_code    String    @db.VarChar(255)
-  template_version Int?
-  source           String    @db.VarChar(255)
-  remarks          String?   @db.VarChar(255)
-  send_mode        String    @db.VarChar(16)
-  detail_count     Int?
-  status           Int
-  created          DateTime  @default(now()) @db.Timestamp(0)
-  start_time       DateTime? @db.Timestamp(0)
-  end_time         DateTime? @db.Timestamp(0)
-  execution_time   BigInt?   @default(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_task_details {
-  id      Int      @id @default(autoincrement())
-  task_id Int
-  user_id Int?
-  app_id  Int?
-  params  String?  @db.LongText
-  status  Int      @default(0)
-  created DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_template {
-  id             Int                       @id @default(autoincrement())
-  code           String                    @db.VarChar(128)
-  name           String                    @db.VarChar(255)
-  type           popc_notice_template_type
-  title          String?                   @db.VarChar(255)
-  inbox_content  String                    @db.LongText
-  email_content  String                    @db.LongText
-  sms_content    String                    @db.LongText
-  use_frame      Int                       @default(0)
-  version        Int
-  status         Int
-  desc           String?                   @db.VarChar(512)
-  operator       String                    @db.VarChar(255)
-  last_send_time DateTime?                 @db.Timestamp(0)
-  updated        DateTime                  @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_template_frame {
-  id       Int      @id @default(autoincrement())
-  type     String   @db.VarChar(24)
-  content  String   @db.LongText
-  operator String   @db.VarChar(255)
-  updated  DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_notice_template_version {
-  id               Int      @id @default(autoincrement())
-  template_id      Int
-  template_version Int
-  template_obj     String   @db.LongText
-  operator         String   @db.VarChar(255)
-  created          DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_oe_clue {
-  id                BigInt   @id @default(autoincrement())
-  clue_id           BigInt   @unique(map: "oe_clue_id")
-  data_type         String   @db.VarChar(7)
-  data              String   @db.VarChar(2048)
-  sync_freq         Int      @default(0) @db.TinyInt
-  clue_create_time  BigInt
-  clue_request_time BigInt
-  status            Int      @default(0) @db.TinyInt
-  fxxk_data_id      String   @default("") @db.VarChar(31)
-  create_time       DateTime @default(now()) @db.Timestamp(0)
-  update_time       DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_org_role {
-  id            BigInt @id @default(autoincrement())
-  role_id       BigInt
-  org_id        BigInt @default(0)
-  app_id        BigInt @default(0)
-  creation_time BigInt
-  status        Int    @default(1) @db.TinyInt
-
-  @@unique([org_id, app_id, role_id], map: "popc_r_a_unique")
-  @@index([app_id], map: "popc_r_a_app")
-  @@index([org_id], map: "popc_r_a_org")
-  @@index([role_id], map: "popc_r_a_role")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_org_whitelist {
-  id            BigInt @id @default(autoincrement())
-  org_id        BigInt @unique(map: "popc_r_a_org")
-  creation_time BigInt
-  status        Int    @default(1) @db.TinyInt
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_rcuser_app {
-  id            BigInt  @id @default(autoincrement())
-  org_id        BigInt
-  user_id       BigInt
-  app_id        BigInt
-  status        Int     @default(1) @db.TinyInt
-  creation_time BigInt
-  update_time   BigInt?
-
-  @@index([app_id], map: "popc_u_a_app")
-  @@index([org_id], map: "popc_u_a_org")
-  @@index([user_id], map: "popc_u_a_user")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_rcuser_master {
-  id              BigInt  @id @default(autoincrement())
-  name            String  @default("") @db.VarChar(127)
-  phone           String  @db.VarChar(30)
-  email           String  @default("") @db.VarChar(127)
-  status          Int     @default(1) @db.TinyInt
-  creation_time   BigInt
-  org_id          BigInt
-  last_app_id     BigInt?
-  last_time       BigInt?
-  password        String  @default("") @db.VarChar(511)
-  country_code    String  @default("86") @db.VarChar(7)
-  source          String  @default("") @db.VarChar(15)
-  update_pwd_time BigInt?
-
-  @@index([email], map: "rcuser_m_email")
-  @@index([org_id], map: "rcuser_m_org")
-  @@index([phone], map: "rcuser_m_phone")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_rcuser_slave {
-  id              BigInt  @id @default(autoincrement())
-  name            String  @default("") @db.VarChar(127)
-  org_id          BigInt
-  email           String  @default("") @db.VarChar(127)
-  phone           String? @default("") @db.VarChar(15)
-  status          Int     @default(0) @db.TinyInt
-  invite_time     BigInt?
-  creation_time   BigInt
-  last_app_id     BigInt?
-  last_time       BigInt?
-  password        String? @default("") @db.VarChar(511)
-  country_code    String? @default("") @db.VarChar(7)
-  update_pwd_time BigInt?
-
-  @@index([email], map: "rcuser_s_email")
-  @@index([org_id], map: "rcuser_s_org")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_recordation {
-  id            BigInt @id @default(autoincrement())
-  org_id        BigInt @default(0)
-  last_user_id  BigInt @default(0)
-  app_id        BigInt @default(0)
-  type          Int    @default(0) @db.TinyInt
-  number        String @default("") @db.VarChar(255)
-  status        Int    @default(0) @db.TinyInt
-  creation_time BigInt
-  update_time   BigInt
-
-  @@index([app_id], map: "IDX_app_id")
-  @@index([org_id], map: "IDX_org_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_referral_relation {
-  id               BigInt    @id @default(autoincrement())
-  referrer_id      BigInt
-  referrer_org_id  BigInt
-  referred_user_id BigInt
-  referred_org_id  BigInt
-  status           Int       @default(1)
-  note             String?   @db.VarChar(110)
-  expire_at        DateTime  @db.DateTime(0)
-  create_at        DateTime  @default(now()) @db.DateTime(0)
-  update_at        DateTime? @db.DateTime(0)
-
-  @@unique([referrer_id, referred_user_id], map: "popc_referral_relation_pk")
-  @@unique([referred_org_id, referred_user_id], map: "popc_referral_relation_referred_org_id_referred_user_id_uindex")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_referral_transaction {
-  id               BigInt    @id @default(autoincrement())
-  referrer_id      BigInt
-  referrer_org_id  BigInt
-  referred_user_id BigInt
-  referred_org_id  BigInt
-  money            Decimal?  @default(0.00) @db.Decimal(10, 2)
-  refund           Decimal   @default(0.00) @db.Decimal(10, 2)
-  transaction_at   DateTime? @db.DateTime(0)
-  effect_at        DateTime? @db.DateTime(0)
-  type             Int       @default(1)
-  status           Int
-  note             String?   @db.VarChar(110)
-  create_at        DateTime  @default(now()) @db.DateTime(0)
-  update_at        DateTime? @db.DateTime(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_referrer {
-  id        BigInt    @id @default(autoincrement())
-  user_id   BigInt?
-  org_id    BigInt
-  code      String    @unique(map: "popc_referrer_pk") @db.VarChar(10)
-  status    Int       @default(1)
-  note      String?   @db.VarChar(110)
-  create_at DateTime  @default(now()) @db.DateTime(0)
-  expire_at DateTime  @db.DateTime(0)
-  update_at DateTime? @db.DateTime(0)
-
-  @@unique([org_id, user_id], map: "popc_referrer_pk_2")
-  @@index([user_id, status], map: "popc_referrer_user_id_status_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_referrer_account {
-  id            BigInt    @id @default(autoincrement())
-  referrer_id   BigInt
-  account_no    String    @db.VarChar(50)
-  account_type  Int?
-  entity        String    @db.VarChar(110)
-  entity_branch String    @db.VarChar(110)
-  deleted       Int       @default(0)
-  create_at     DateTime  @default(now()) @db.DateTime(0)
-  update_at     DateTime? @db.DateTime(0)
-
-  @@index([referrer_id, account_type, deleted], map: "withdraw_filter_idx")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_referrer_reward {
-  id              BigInt    @id @default(autoincrement())
-  referrer_id     BigInt
-  referred_count  Int
-  referred_money  Decimal   @db.Decimal(10, 2)
-  reward_pct      Int
-  pretax_reward   Decimal   @db.Decimal(10, 2)
-  aftertax_reward Decimal   @db.Decimal(10, 2)
-  billing_month   Int
-  status          Int       @default(0)
-  note            String?   @db.VarChar(110)
-  internal_note   String?   @db.VarChar(110)
-  apply_at        DateTime? @db.DateTime(0)
-  create_at       DateTime  @default(now()) @db.DateTime(0)
-  update_at       DateTime? @db.DateTime(0)
-
-  @@unique([referrer_id, billing_month], map: "popc_referrer_reward_referrer_id_billing_month_uindex")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_replenish_menu {
-  id            BigInt  @id @default(autoincrement())
-  org_role_id   BigInt  @default(0)
-  app_role_id   BigInt  @default(0)
-  user_role_id  BigInt
-  menu_id       BigInt
-  creation_time BigInt
-  type          Int     @default(1) @db.TinyInt
-  status        Int     @default(1) @db.TinyInt
-  description   String? @db.VarChar(127)
-  prompt_zh     String? @db.VarChar(255)
-  prompt_en     String? @db.VarChar(255)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_role {
-  id            BigInt  @id @default(autoincrement())
-  name          String  @default("") @db.VarChar(31)
-  code          String  @db.VarChar(31)
-  type          String  @db.VarChar(15)
-  org_id        BigInt  @default(0)
-  creation_time BigInt
-  description   String? @default("") @db.VarChar(63)
-  status        Int     @default(1) @db.TinyInt
-
-  @@index([org_id, type, code], map: "role_org_code")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_role_menu {
-  id            BigInt  @id @default(autoincrement())
-  role_id       BigInt
-  menu_id       BigInt
-  exclude       Boolean @default(false)
-  creation_time BigInt  @default(0)
-  status        Int     @default(1) @db.TinyInt
-
-  @@index([menu_id], map: "popc_r_m_menu")
-  @@index([role_id], map: "popc_r_m_role")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_search_history {
-  id        Int      @id @default(autoincrement())
-  query     String   @db.Text
-  module    String?  @db.VarChar(20)
-  hits      Int      @default(0)
-  user_id   String   @db.VarChar(100)
-  create_at DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model popc_user_role {
-  id            BigInt  @id @default(autoincrement())
-  org_id        BigInt
-  user_id       BigInt
-  role_id       BigInt
-  creation_time BigInt  @default(0)
-  status        Int     @default(1) @db.TinyInt
-  update_time   BigInt?
-
-  @@index([org_id], map: "popc_u_r_org")
-  @@index([role_id], map: "popc_u_r_role")
-  @@index([user_id], map: "popc_u_r_user")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_access_log {
-  id          Int     @id @default(autoincrement())
-  url         String  @db.VarChar(255)
-  date        Int
-  method      String  @db.VarChar(10)
-  create_time Int     @default(0)
-  params      String? @db.VarChar(255)
-  site        String  @default("developer") @db.VarChar(255)
-  user_id     Int
-
-  @@index([date], map: "date")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_access_log_bak20220525 {
   id          Int     @id @default(autoincrement())
   url         String  @db.VarChar(255)
   date        Int
@@ -1243,25 +422,10 @@ model rcloud_admin_message_template {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_admin_optlog {
-  id       Int     @id @default(autoincrement()) @db.UnsignedInt
-  admin_id Int     @db.UnsignedMediumInt
-  action   String  @db.VarChar(30)
-  url      String  @db.VarChar(255)
-  oplog    String  @db.LongText
-  ip       String  @default("127.0.0.1") @db.Char(15)
-  dateline Int
-  new_data String? @db.Text
-  old_data String? @db.Text
-
-  @@index([url], map: "index_url")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_admin_permission {
   id           Int    @id @default(autoincrement()) @db.UnsignedInt
   name         String @default("") @db.VarChar(100)
-  operate_name String @default("") @db.VarChar(256)
+  operate_name String @default("") @db.VarChar(255)
   controller   String @default("") @db.VarChar(100)
   url          String @default("") @db.VarChar(100)
   acl          String @default("") @db.VarChar(100)
@@ -1467,29 +631,8 @@ model rcloud_admin_user {
   qq                     Int?
   google                 String?                  @db.VarChar(255)
   wechat_qrcode          String?                  @db.VarChar(255)
+  rcloud_ticket_onduty   rcloud_ticket_onduty[]
   rcloud_ticket_transfer rcloud_ticket_transfer[]
-
-  @@index([email], map: "email")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_admin_user_copy {
-  id              Int      @id @default(autoincrement()) @db.UnsignedSmallInt
-  username        String   @unique(map: "username") @db.VarChar(30)
-  name            String?  @db.VarChar(30)
-  password        String   @db.Char(32)
-  role_id         String   @db.VarChar(512)
-  last_login_time Int      @db.UnsignedInt
-  last_login_ip   String   @db.VarChar(40)
-  login_count     Int?     @default(0) @db.UnsignedMediumInt
-  email           String   @db.VarChar(50)
-  mobile          String   @db.VarChar(11)
-  create_time     Int      @db.UnsignedInt
-  update_time     Int      @db.UnsignedInt
-  status          Boolean? @default(true)
-  qq              Int?
-  google          String?  @db.VarChar(255)
-  wechat_qrcode   String?  @db.VarChar(255)
 
   @@index([email], map: "email")
 }
@@ -1620,37 +763,12 @@ model rcloud_api_ip_list {
   big_net       String  @default("") @db.VarChar(255)
   center_id     Int?    @default(0)
 
-  @@index([test_end_time], map: "index_1")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_api_ip_list_20210119 {
-  id            Int     @id @default(autoincrement())
-  app_id        Int
-  api_url       String? @db.VarChar(255)
-  status        Int
-  ctime         String  @db.VarChar(32)
-  app_key       String  @db.VarChar(45)
-  env           Int?
-  type          Int?
-  test_end_time String  @default("") @db.VarChar(32)
-  manage_url    String? @db.VarChar(255)
-  pay_status    Boolean @default(false)
-  utime         String  @db.VarChar(32)
-  oem_url       String  @default("") @db.VarChar(255)
-  big_net       String  @default("") @db.VarChar(255)
-
+  @@index([app_key], map: "idx_app_key")
   @@index([test_end_time], map: "index_1")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_apicategory {
-  id   Int    @id @default(autoincrement())
-  name String @db.VarChar(255)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_apicategory_1230 {
   id   Int    @id @default(autoincrement())
   name String @db.VarChar(255)
 }
@@ -1663,48 +781,6 @@ model rcloud_apicategory_bak {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_apitool {
-  id        Int     @id @default(autoincrement())
-  c_id      Int
-  name      String  @db.VarChar(255)
-  uri       String  @db.VarChar(255)
-  params    String  @db.Text
-  out       String  @db.VarChar(255)
-  checkurl  String? @db.VarChar(255)
-  docUrl    String  @db.VarChar(255)
-  apihost   String? @default("api_url") @db.VarChar(20)
-  apimehtod String? @default("post") @db.VarChar(20)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_apitool_20200602 {
-  id        Int     @id @default(autoincrement())
-  c_id      Int
-  name      String  @db.VarChar(255)
-  uri       String  @db.VarChar(255)
-  params    String  @db.Text
-  out       String  @db.VarChar(255)
-  checkurl  String? @db.VarChar(255)
-  docUrl    String  @db.VarChar(255)
-  apihost   String? @default("api_url") @db.VarChar(20)
-  apimehtod String? @default("post") @db.VarChar(20)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_apitool_20210928 {
-  id        Int     @id @default(autoincrement())
-  c_id      Int
-  name      String  @db.VarChar(255)
-  uri       String  @db.VarChar(255)
-  params    String  @db.Text
-  out       String  @db.VarChar(255)
-  checkurl  String? @db.VarChar(255)
-  docUrl    String  @db.VarChar(255)
-  apihost   String? @default("api_url") @db.VarChar(20)
-  apimehtod String? @default("post") @db.VarChar(20)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_apitool_20211214 {
   id        Int     @id @default(autoincrement())
   c_id      Int
   name      String  @db.VarChar(255)
@@ -1922,39 +998,6 @@ model rcloud_app_first {
   @@index([rtc_open_date], map: "rtc_open_date")
   @@index([rtc_open_date], map: "rtc_value_date")
   @@index([server_id], map: "server_id")
-  @@index([user_add_date], map: "user_add_date")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_app_first_copy {
-  id             Int     @id @default(autoincrement()) @db.UnsignedInt
-  user_id        Int     @default(0)
-  app_id         Int     @default(0)
-  app_key        String  @default("") @db.VarChar(20)
-  env            Boolean @default(false)
-  dynamic_date   Int     @default(0)
-  dynamic        BigInt  @default(0)
-  user_add_date  Int     @default(0)
-  user_add       Int     @default(0)
-  message_date   Int     @default(0)
-  message        BigInt? @default(0)
-  im_open_date   Int     @default(0)
-  rtc_open_date  Int     @default(0)
-  rtc_value_date Int     @default(0)
-  rtc_value      BigInt? @default(0)
-  create_time    Int     @default(0)
-  update_time    Int     @default(0)
-  remark         String? @default("") @db.VarChar(100)
-  config         String? @default("") @db.VarChar(200)
-
-  @@index([app_id], map: "app_id")
-  @@index([app_key], map: "app_key")
-  @@index([dynamic_date], map: "dynamic_date")
-  @@index([im_open_date], map: "im_open_date")
-  @@index([message_date], map: "message_date")
-  @@index([rtc_open_date], map: "rtc_open_date")
-  @@index([rtc_open_date], map: "rtc_value_date")
   @@index([update_time], map: "update_time")
   @@index([user_add_date], map: "user_add_date")
   @@index([user_id], map: "user_id")
@@ -2021,78 +1064,7 @@ model rcloud_app_message_reminder {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_app_message_reminder_copy {
-  id           Int      @id @default(autoincrement()) @db.UnsignedInt
-  server_id    Int      @default(0) @db.UnsignedInt
-  app_id       Int      @default(0) @db.UnsignedInt
-  service      Int?     @default(0)
-  type         Int      @default(0) @db.TinyInt
-  status       Int      @default(0) @db.UnsignedTinyInt
-  is_first     Int      @default(1) @db.UnsignedTinyInt
-  env          Int      @default(1) @db.UnsignedTinyInt
-  create_time  String   @default("") @db.VarChar(12)
-  update_time  String   @default("") @db.VarChar(12)
-  tally        String   @default("0") @db.VarChar(15)
-  lev          Int?     @default(0) @db.TinyInt
-  is_del       Int      @default(0) @db.UnsignedTinyInt
-  send_status  Int?     @default(0) @db.TinyInt
-  send_time    String?  @default("") @db.VarChar(12)
-  limit_status Boolean? @default(false)
-  loop_time    Int      @default(0) @db.UnsignedTinyInt
-  remark       String?  @default("") @db.VarChar(200)
-  config       String?  @default("") @db.VarChar(200)
-
-  @@index([app_id], map: "index_app_id")
-  @@index([create_time], map: "index_create_time")
-  @@index([tally], map: "index_tally")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_app_message_reminder_copy1 {
-  id           Int      @id @default(autoincrement()) @db.UnsignedInt
-  server_id    Int      @default(0) @db.UnsignedInt
-  app_id       Int      @default(0) @db.UnsignedInt
-  service      Int?     @default(0)
-  type         Int      @default(0) @db.TinyInt
-  status       Int      @default(0) @db.UnsignedTinyInt
-  is_first     Int      @default(1) @db.UnsignedTinyInt
-  env          Int      @default(1) @db.UnsignedTinyInt
-  create_time  String   @default("") @db.VarChar(12)
-  update_time  String   @default("") @db.VarChar(12)
-  tally        String   @default("0") @db.VarChar(15)
-  lev          Int?     @default(0) @db.TinyInt
-  is_del       Int      @default(0) @db.UnsignedTinyInt
-  send_status  Int?     @default(0) @db.TinyInt
-  send_time    String?  @default("") @db.VarChar(12)
-  limit_status Boolean? @default(false)
-  loop_time    Int      @default(0) @db.UnsignedTinyInt
-  remark       String?  @default("") @db.VarChar(200)
-  config       String?  @default("") @db.VarChar(200)
-
-  @@index([app_id], map: "index_app_id")
-  @@index([create_time], map: "index_create_time")
-  @@index([tally], map: "index_tally")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_app_message_trigger {
-  id          Int    @id @default(autoincrement()) @db.UnsignedInt
-  app_id      Int?   @default(0) @db.UnsignedInt
-  is_first    Int    @default(1) @db.UnsignedTinyInt
-  env         Int    @default(1) @db.UnsignedTinyInt
-  create_time String @default("") @db.VarChar(12)
-  update_time String @default("") @db.VarChar(12)
-  tally       String @default("0") @db.VarChar(15)
-  lev         Int    @default(5) @db.UnsignedTinyInt
-  is_del      Int    @default(0) @db.UnsignedTinyInt
-
-  @@index([app_id], map: "index_app_id")
-  @@index([create_time], map: "index_create_time")
-  @@index([tally], map: "index_tally")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_app_message_trigger_copy {
   id          Int    @id @default(autoincrement()) @db.UnsignedInt
   app_id      Int?   @default(0) @db.UnsignedInt
   is_first    Int    @default(1) @db.UnsignedTinyInt
@@ -2122,6 +1094,7 @@ model rcloud_app_online {
   is_offline    Int     @default(0) @db.UnsignedTinyInt
 
   @@index([app_id], map: "app_id")
+  @@index([create_time], map: "idx_create_time")
   @@index([user_id], map: "user_id")
 }
 
@@ -2172,55 +1145,6 @@ model rcloud_app_send_relation {
   @@index([app_key], map: "app_key")
   @@index([bind_app_id], map: "bind_app_id")
   @@index([bind_app_key], map: "bind_app_key")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_app_test {
-  id                     Int     @id @default(autoincrement()) @db.UnsignedInt
-  name                   String  @default("") @db.VarChar(125)
-  category               Int     @default(0)
-  app_id                 String  @default("") @db.VarChar(45)
-  create_ip              String  @default("") @db.VarChar(16)
-  user_id                Int     @default(0)
-  create_time            Int     @default(0)
-  status                 Boolean @default(false)
-  version                Boolean @default(false)
-  description            String? @db.Text
-  app_secret             String  @default("") @db.VarChar(100)
-  service_status         Boolean @default(false)
-  push_certificate       String  @default("") @db.VarChar(150)
-  authorize_email        String  @default("") @db.VarChar(150)
-  manage_url             String  @default("") @db.VarChar(150)
-  update_time            Int     @default(0)
-  customer_status        Boolean @default(false)
-  test_app_id            String  @default("") @db.VarChar(45)
-  test_app_secret        String  @default("") @db.VarChar(100)
-  test_push_certificate  String  @default("") @db.VarChar(150)
-  target_id              String  @default("") @db.VarChar(32)
-  test_target_id         String  @default("") @db.VarChar(32)
-  cooperate_id           Int     @default(0)
-  follow_status          Boolean @default(false)
-  dev_token_expire       String  @default("0") @db.Char(15)
-  produce_token_expire   String  @default("0") @db.Char(15)
-  arg_option             Boolean @default(false)
-  test_arg_option        Boolean @default(false)
-  ismarket               Boolean @default(true)
-  app_use                Boolean @default(false)
-  user_level             Int     @default(0) @db.TinyInt
-  sms_pic                Int     @default(0) @db.TinyInt
-  test_sms_pic           Int     @default(0) @db.TinyInt
-  pay_version            Boolean @default(false)
-  business_level         Boolean @default(true)
-  business_update_time   Int     @default(0)
-  delete_time            Int     @default(0)
-  params                 String  @default("") @db.VarChar(500)
-  equipment_number_count Int?    @default(0)
-
-  @@index([app_id], map: "app_id")
-  @@index([category], map: "category")
-  @@index([user_id], map: "indexs")
-  @@index([app_id], map: "ix_app_id")
-  @@index([test_app_id], map: "ix_test_app_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -2545,20 +1469,6 @@ model rcloud_blink_month {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_blink_month_2019011 {
-  id         Int     @id @default(autoincrement()) @db.UnsignedInt
-  user_id    Int     @default(0) @db.UnsignedInt
-  app_id     Int     @default(0) @db.UnsignedInt
-  month      Int     @default(0) @db.UnsignedInt
-  audio_time BigInt  @default(0) @db.UnsignedBigInt
-  sd_time    BigInt  @default(0) @db.UnsignedBigInt
-  hd_time    BigInt  @default(0) @db.UnsignedBigInt
-  hdd_time   BigInt  @default(0) @db.UnsignedBigInt
-  consume    Decimal @default(0.0000) @db.Decimal(11, 4)
-  user_count Int     @default(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_blink_statistics {
   sid             Int     @default(autoincrement()) @db.UnsignedInt
   id              String  @default("") @db.VarChar(40)
@@ -2672,11 +1582,11 @@ model rcloud_boss_compliance {
 model rcloud_boss_config {
   id            Int      @id @default(autoincrement())
   typeId        Int
-  name          String   @db.VarChar(50)
+  name          String   @db.VarChar(32)
   type          Int
   ctime         DateTime @default(now()) @db.Timestamp(0)
   finance       String   @default("0") @db.VarChar(32)
-  developerName String?  @db.VarChar(50)
+  developerName String?  @db.VarChar(32)
   is_show       Int?     @default(1) @db.TinyInt
 }
 
@@ -2748,49 +1658,6 @@ model rcloud_boss_invoice {
   qiniu_attr      String  @default("") @db.VarChar(255)
   dcp_status      Int     @default(0) @db.TinyInt
   invoice_publish Boolean @default(true)
-  invoice_remark  String? @db.VarChar(512)
-
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_boss_invoice_copy {
-  id              Int     @id @default(autoincrement())
-  user_id         Int
-  title           String  @default("") @db.VarChar(255)
-  type            Int     @default(1) @db.TinyInt
-  money           Decimal @db.Decimal(11, 2)
-  name            String  @default("") @db.VarChar(30)
-  phone           String  @default("") @db.VarChar(20)
-  address         String  @default("") @db.VarChar(255)
-  taxpayer        String? @default("") @db.VarChar(255)
-  bank            String? @default("") @db.VarChar(255)
-  sign_address    String? @default("") @db.VarChar(255)
-  bank_num        String? @default("") @db.VarChar(255)
-  sign_phone      String? @default("") @db.VarChar(20)
-  admin_id        Int     @default(0)
-  status          Int     @default(0) @db.TinyInt
-  ctime           Int     @default(0)
-  utime           Int     @default(0)
-  records         String  @default("0") @db.VarChar(5000)
-  attr            String? @default("") @db.VarChar(255)
-  express         String? @default("") @db.VarChar(255)
-  remark          String? @default("") @db.VarChar(255)
-  last_title      String? @default("") @db.VarChar(255)
-  read_time       Int     @default(0) @db.UnsignedInt
-  open            String? @default("") @db.VarChar(10)
-  backtime        Int     @default(0)
-  backfile        String? @default("") @db.VarChar(255)
-  email           String  @default("") @db.VarChar(128)
-  oldtype         Int     @default(0) @db.TinyInt
-  oldrecords      String  @default("0") @db.VarChar(5000)
-  invoice_type    Boolean @default(false)
-  recharge_money  Decimal @default(0.00) @db.Decimal(11, 2)
-  recharge_finish Boolean @default(false)
-  invoice_num     String  @default("") @db.VarChar(20)
-  application_id  Int     @default(0)
-  qiniu_attr      String  @default("") @db.VarChar(255)
-  dcp_status      Int     @default(0) @db.TinyInt
 
   @@index([user_id], map: "user_id")
 }
@@ -2868,52 +1735,48 @@ model rcloud_boss_order {
   expand_config     String? @db.Text
   hand_order        Int?    @default(0) @db.TinyInt
 
-  @@index([order_id], map: "idx_order_id")
   @@index([user_id], map: "user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_boss_recharge {
-  id                 Int       @id @default(autoincrement())
-  user_id            Int       @default(0)
-  order_id           BigInt    @default(0)
-  app_id             Int       @default(0)
-  server             Int       @default(0)
-  money              Decimal   @default(0.00) @db.Decimal(11, 2)
-  cdate              String    @default("") @db.VarChar(16)
-  invoice            Int       @default(1)
-  source             Int       @default(0)
-  file               String    @default("") @db.VarChar(256)
-  reason             String    @default("") @db.VarChar(256)
-  remark             String    @default("") @db.VarChar(256)
-  status             Int       @default(1)
-  admin_id           Int       @default(0)
-  audit_id           Int       @default(0)
-  origin             Int       @default(1)
-  ctime              DateTime? @default(now()) @db.Timestamp(0)
-  utime              String    @default("") @db.VarChar(32)
-  op_id              String    @default("0") @db.VarChar(32)
-  invoice_back       Boolean   @default(false)
-  refund             Decimal?  @default(0.00) @db.Decimal(11, 2)
-  manage_id          Int       @default(0)
-  account            Boolean   @default(false)
-  out_order_id       String    @default("") @db.VarChar(32)
-  server_order_id    String    @default("0") @db.VarChar(32)
-  company_pay_id     Int       @default(0)
-  remitter           String    @default("默认单位") @db.VarChar(255)
-  public_cloud       Boolean?  @default(false)
-  config             String?   @db.VarChar(500)
-  discount           Int       @default(10) @db.UnsignedTinyInt
-  time_length        Int       @default(0) @db.UnsignedTinyInt
-  invoice_money      Decimal   @default(0.00) @db.Decimal(11, 2)
-  currency           Boolean?  @default(true)
-  payee              Boolean?  @default(true)
-  tally              Boolean   @default(true)
-  apply_pay_code     String    @default("") @db.VarChar(64)
-  apply_pay_date     String    @default("") @db.VarChar(64)
-  transfer_out_money Decimal?  @default(0.00) @db.Decimal(11, 2)
-  recharge_subject   Boolean   @default(true)
-  recharge_status    Boolean   @default(true)
+  id              Int       @id @default(autoincrement())
+  user_id         Int       @default(0)
+  order_id        BigInt    @default(0)
+  app_id          Int       @default(0)
+  server          Int       @default(0)
+  money           Decimal   @default(0.00) @db.Decimal(11, 2)
+  cdate           String    @default("") @db.VarChar(16)
+  invoice         Int       @default(1)
+  source          Int       @default(0)
+  file            String    @default("") @db.VarChar(256)
+  reason          String    @default("") @db.VarChar(256)
+  remark          String    @default("") @db.VarChar(256)
+  status          Int       @default(1)
+  admin_id        Int       @default(0)
+  audit_id        Int       @default(0)
+  origin          Int       @default(1)
+  ctime           DateTime? @default(now()) @db.Timestamp(0)
+  utime           String    @default("") @db.VarChar(32)
+  op_id           String    @default("0") @db.VarChar(32)
+  invoice_back    Boolean   @default(false)
+  refund          Decimal?  @default(0.00) @db.Decimal(11, 2)
+  manage_id       Int       @default(0)
+  account         Boolean   @default(false)
+  out_order_id    String    @default("") @db.VarChar(32)
+  server_order_id String    @default("0") @db.VarChar(32)
+  company_pay_id  Int       @default(0)
+  remitter        String    @default("默认单位") @db.VarChar(255)
+  public_cloud    Boolean?  @default(false)
+  config          String?   @default("") @db.VarChar(200)
+  discount        Int       @default(10) @db.UnsignedTinyInt
+  time_length     Int       @default(0) @db.UnsignedTinyInt
+  invoice_money   Decimal   @default(0.00) @db.Decimal(11, 2)
+  currency        Boolean?  @default(true)
+  payee           Boolean?  @default(true)
+  tally           Boolean   @default(true)
+  apply_pay_code  String    @default("") @db.VarChar(64)
+  apply_pay_date  String    @default("") @db.VarChar(64)
 
   @@index([app_id], map: "app_id")
   @@index([company_pay_id], map: "company_pay_id")
@@ -2943,7 +1806,7 @@ model rcloud_boss_refund {
   user_id        Int      @default(0)
   money          Decimal  @default(0.00) @db.Decimal(11, 2)
   file           String   @default("") @db.VarChar(256)
-  reason         String   @default("") @db.VarChar(512)
+  reason         String   @default("") @db.VarChar(256)
   remark         String   @default("") @db.VarChar(256)
   status         Int      @default(1)
   admin_id       Int      @default(0)
@@ -3051,7 +1914,6 @@ model rcloud_certificate {
   file_product_name   String  @default("") @db.VarChar(255)
   file_product        String  @default("") @db.VarChar(200)
   package_name        String  @default("") @db.VarChar(200)
-  oh_package_name     String  @default("") @db.VarChar(200)
   status              Boolean @default(false)
   production_password String  @default("") @db.VarChar(32)
   voip_password       String  @default("") @db.VarChar(32)
@@ -3061,50 +1923,17 @@ model rcloud_certificate {
   dev_psuh_ret        Boolean @default(false)
   production_psuh_ret Boolean @default(false)
   push_user_id        String  @default("") @db.VarChar(50)
-  push_set            String  @db.LongText
-  push_dev_set        String  @db.LongText
+  push_set            String  @db.Text
+  push_dev_set        String  @db.Text
   file_test_time      Int     @default(0)
   file_product_time   Int     @default(0)
   voip_time           Int     @default(0)
   last_updatetime     Int?    @default(0)
   ios_push_set        String  @default("") @db.VarChar(1000)
   ios_push_dev_set    String  @default("") @db.VarChar(1000)
-  cer_env             String  @default("") @db.VarChar(2)
 
   @@index([app_id], map: "app_id")
   @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_certificate_bak {
-  id                  Int     @id @default(autoincrement()) @db.UnsignedInt
-  title               String  @default("") @db.VarChar(50)
-  bundle_id           String  @default("") @db.VarChar(200)
-  file_test_name      String  @default("") @db.VarChar(255)
-  file_test           String  @default("") @db.VarChar(200)
-  voip_file_name      String  @default("") @db.VarChar(255)
-  voip_file           String  @default("") @db.VarChar(200)
-  create_time         Int     @default(0)
-  app_id              Int     @default(0)
-  user_id             Int     @default(0)
-  file_product_name   String  @default("") @db.VarChar(255)
-  file_product        String  @default("") @db.VarChar(200)
-  package_name        String  @default("") @db.VarChar(200)
-  status              Boolean @default(false)
-  production_password String  @default("") @db.VarChar(32)
-  voip_password       String  @default("") @db.VarChar(32)
-  dev_password        String  @default("") @db.VarChar(32)
-  production_voice    String  @default("") @db.VarChar(50)
-  dev_voice           String  @default("") @db.VarChar(50)
-  dev_psuh_ret        Boolean @default(false)
-  production_psuh_ret Boolean @default(false)
-  push_user_id        String  @default("") @db.VarChar(50)
-  push_set            String  @default("") @db.VarChar(200)
-  push_dev_set        String  @default("") @db.VarChar(200)
-  file_test_time      Int     @default(0)
-  file_product_time   Int     @default(0)
-  voip_time           Int     @default(0)
-  last_updatetime     Int?    @default(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -3152,28 +1981,6 @@ model rcloud_certificate_name_list_common {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_charge_package_switch_log {
-  id               Int    @id @default(autoincrement()) @db.UnsignedInt
-  user_id          Int    @db.UnsignedInt
-  app_id           Int    @db.UnsignedInt
-  env              Int    @db.UnsignedTinyInt
-  operation_log_id Int    @default(0) @db.UnsignedInt
-  old_service_id   Int    @default(0) @db.UnsignedInt
-  service_id       Int    @db.UnsignedInt
-  status           Int    @default(1) @db.UnsignedTinyInt
-  old_config       Json?
-  new_config       Json?
-  package_item     String @default("") @db.VarChar(500)
-  switch_desc      String @default("") @db.VarChar(500)
-  switch_result    String @default("") @db.VarChar(5000)
-  created_at       Int    @db.UnsignedInt
-  updated_at       Int    @db.UnsignedInt
-
-  @@index([app_id], map: "app_id")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_charging_log_billing {
   id         Int      @id @default(autoincrement()) @db.UnsignedInt
   type       String   @db.VarChar(45)
@@ -3191,6 +1998,7 @@ model rcloud_charging_log_billing {
 
   @@index([userId], map: "IDX_userId")
   @@index([chargeDate], map: "chargeDate")
+  @@index([itemId], map: "idx_item_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -3372,7 +2180,7 @@ model rcloud_company_pay_info {
   audit_reason                 String  @default("") @db.VarChar(255)
   audit_admin_id               Int     @default(0)
   audit_time                   Int     @default(0)
-  receive_account              Boolean @default(false)
+  receive_account              String  @default("") @db.VarChar(255)
   add_receive_account_admin_id Int     @default(0)
   add_receive_account_time     Int     @default(0)
 
@@ -3605,24 +2413,6 @@ model rcloud_course_relation {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_crm_activity_import_user {
-  id               Int    @id @default(autoincrement()) @db.UnsignedInt
-  user_id          Int    @default(0)
-  import_content   String @default("") @db.VarChar(256)
-  follow_content   String @default("") @db.VarChar(256)
-  follow_file_url  String @default("") @db.VarChar(256)
-  next_follow_time String @default("") @db.VarChar(256)
-  state            Int    @default(0) @db.TinyInt
-  is_del           Int    @default(0) @db.TinyInt
-  create_by        Int    @default(0)
-  update_by        Int    @default(0)
-  create_time      Int    @default(0)
-  update_time      Int    @default(0)
-
-  @@index([user_id], map: "idx_user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_crm_city {
   id          Int    @id @default(autoincrement()) @db.UnsignedInt
   city_name   String @default("") @db.VarChar(50)
@@ -3631,55 +2421,55 @@ model rcloud_crm_city {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_crm_clue {
-  id                     Int     @id @default(autoincrement()) @db.UnsignedInt
-  uid                    Int     @default(0)
-  p_uid                  Int     @default(0)
-  customer_type          Int     @default(0) @db.TinyInt
-  customer               String  @default("") @db.VarChar(200)
-  certify_type           Int     @default(0) @db.TinyInt
-  customer_trades        Int     @default(0) @db.TinyInt
-  area_id                Int     @default(0)
-  pool_province          Int     @default(0)
-  customer_cityid        Int     @default(0)
-  customer_city          String  @default("") @db.VarChar(20)
-  contacts               String  @default("") @db.VarChar(20)
-  contact_phone          String  @default("") @db.VarChar(16)
-  phone                  String  @default("") @db.Char(11)
-  wechat                 String  @default("") @db.VarChar(50)
-  email                  String  @default("") @db.VarChar(100)
-  clue_source            Int     @default(0) @db.TinyInt
-  search_keyword         String  @default("") @db.VarChar(20)
-  intentio_product       String  @default("") @db.VarChar(10)
-  is_business_move       Int     @default(0) @db.TinyInt
-  im_business            String  @default("") @db.VarChar(50)
-  rce_business           String  @default("") @db.VarChar(50)
-  use_scene              String  @default("") @db.VarChar(255)
-  project_name           String  @default("") @db.VarChar(50)
-  remarks                String  @default("") @db.VarChar(255)
-  expand_status          Int     @default(0) @db.TinyInt
-  allot_time             Int     @default(0)
-  expire_endtime         Int     @default(0)
-  end_record_time        Int     @default(0)
-  limit_record_time      Int     @default(0)
-  bind_time              Int     @default(0)
-  ignore_by              Int     @default(0)
-  ignore_date            Int     @default(0)
-  sales_id               Int     @default(0)
-  sales_name             String  @default("") @db.VarChar(50)
-  status                 Int     @default(0) @db.TinyInt
-  create_id              Int     @default(0)
-  create_time            Int     @default(0)
-  give_up_time           Int     @default(0)
-  update_id              Int     @default(0)
-  update_time            Int     @default(0)
-  belong_to              Boolean @default(false)
-  confirm_time           Int     @default(0)
-  online_time            Int     @default(0)
-  next_follow_time       String  @default("") @db.VarChar(32)
-  app_expect_online_time Int     @default(0)
-  display_date           String  @default("") @db.VarChar(64)
-  display_num            Int     @default(0) @db.UnsignedInt
-  is_long_time           Int     @default(0) @db.TinyInt
+  id                     Int    @id @default(autoincrement()) @db.UnsignedInt
+  uid                    Int    @default(0)
+  p_uid                  Int    @default(0)
+  customer_type          Int    @default(0) @db.TinyInt
+  customer               String @default("") @db.VarChar(200)
+  certify_type           Int    @default(0) @db.TinyInt
+  customer_trades        Int    @default(0) @db.TinyInt
+  area_id                Int    @default(0)
+  pool_province          Int    @default(0)
+  customer_cityid        Int    @default(0)
+  customer_city          String @default("") @db.VarChar(20)
+  contacts               String @default("") @db.VarChar(20)
+  contact_phone          String @default("") @db.VarChar(16)
+  phone                  String @default("") @db.Char(11)
+  wechat                 String @default("") @db.VarChar(50)
+  email                  String @default("") @db.VarChar(100)
+  clue_source            Int    @default(0) @db.TinyInt
+  search_keyword         String @default("") @db.VarChar(20)
+  intentio_product       String @default("") @db.VarChar(10)
+  is_business_move       Int    @default(0) @db.TinyInt
+  im_business            String @default("") @db.VarChar(50)
+  rce_business           String @default("") @db.VarChar(50)
+  use_scene              String @default("") @db.VarChar(255)
+  project_name           String @default("") @db.VarChar(50)
+  remarks                String @default("") @db.VarChar(255)
+  expand_status          Int    @default(0) @db.TinyInt
+  allot_time             Int    @default(0)
+  expire_endtime         Int    @default(0)
+  end_record_time        Int    @default(0)
+  limit_record_time      Int    @default(0)
+  bind_time              Int    @default(0)
+  ignore_by              Int    @default(0)
+  ignore_date            Int    @default(0)
+  sales_id               Int    @default(0)
+  sales_name             String @default("") @db.VarChar(50)
+  status                 Int    @default(0) @db.TinyInt
+  create_id              Int    @default(0)
+  create_time            Int    @default(0)
+  give_up_time           Int    @default(0)
+  update_id              Int    @default(0)
+  update_time            Int    @default(0)
+  belong_to              Int    @default(0) @db.TinyInt
+  confirm_time           Int    @default(0)
+  online_time            Int    @default(0)
+  next_follow_time       String @default("") @db.VarChar(32)
+  app_expect_online_time Int    @default(0)
+  display_date           String @default("") @db.VarChar(64)
+  display_num            Int    @default(0) @db.UnsignedInt
+  is_long_time           Int    @default(0) @db.TinyInt
 
   @@index([phone], map: "phone")
   @@index([uid], map: "uid")
@@ -3737,52 +2527,27 @@ model rcloud_crm_clue_contacts {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_crm_clue_extend {
-  id               Int     @id @default(autoincrement()) @db.UnsignedInt
-  type             Int     @default(0) @db.TinyInt
-  clue_id          Int     @default(0)
-  expand_channel   Int     @default(0)
-  value            String? @default("") @db.VarChar(2000)
-  value1           String  @default("") @db.VarChar(255)
-  status           Boolean @default(false)
-  create_id        Int     @default(0)
-  create_time      Int     @default(0)
-  update_id        Int     @default(0)
-  update_time      Int     @default(0)
-  proof_time       Int     @default(0)
-  next_follow_time String  @default("") @db.VarChar(32)
-  proof_userid     Int     @default(0)
-  auth_time        Int     @default(0)
-  auth_userid      Int     @default(0)
-  is_del           Int     @default(0) @db.TinyInt
-  value_2          String  @default("0") @db.VarChar(255)
-  value_3          String  @default("0") @db.VarChar(255)
-  value_4          String  @default("0") @db.VarChar(255)
+  id             Int     @id @default(autoincrement()) @db.UnsignedInt
+  type           Int     @default(0) @db.TinyInt
+  clue_id        Int     @default(0)
+  expand_channel Int     @default(0)
+  value          String? @default("") @db.VarChar(2000)
+  value1         String  @default("") @db.VarChar(255)
+  status         Boolean @default(false)
+  create_id      Int     @default(0)
+  create_time    Int     @default(0)
+  update_id      Int     @default(0)
+  update_time    Int     @default(0)
+  proof_time     Int     @default(0)
+  proof_userid   Int     @default(0)
+  auth_time      Int     @default(0)
+  auth_userid    Int     @default(0)
+  is_del         Int     @default(0) @db.TinyInt
+  value_2        String  @default("0") @db.VarChar(255)
+  value_3        String  @default("0") @db.VarChar(255)
+  value_4        String  @default("0") @db.VarChar(255)
 
   @@index([clue_id], map: "index_clue_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_crm_clue_extend_copy {
-  id               Int     @id @default(autoincrement()) @db.UnsignedInt
-  type             Int     @default(0) @db.TinyInt
-  clue_id          Int     @default(0)
-  expand_channel   Int     @default(0)
-  value            String  @default("") @db.VarChar(255)
-  value1           String  @default("") @db.VarChar(255)
-  status           Boolean @default(false)
-  create_id        Int     @default(0)
-  create_time      Int     @default(0)
-  update_id        Int     @default(0)
-  update_time      Int     @default(0)
-  proof_time       Int     @default(0)
-  next_follow_time String  @default("") @db.VarChar(32)
-  proof_userid     Int     @default(0)
-  auth_time        Int     @default(0)
-  auth_userid      Int     @default(0)
-  is_del           Int     @default(0) @db.TinyInt
-  value_2          String  @default("0") @db.VarChar(255)
-  value_3          String  @default("0") @db.VarChar(255)
-  value_4          String  @default("0") @db.VarChar(255)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -3930,50 +2695,50 @@ model rcloud_crm_clue_permission {
   update_time          Int
   clue_surplus         Int    @default(0)
   allot_area_time      Int    @default(0)
-  holiday_clue_surplus Int    @default(0)
+  holiday_clue_surplus Int    @default(1)
   consult_clue_surplus Int    @default(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_crm_clue_pool {
-  id                  Int     @id @default(autoincrement()) @db.UnsignedInt
-  user_id             Int     @default(0) @db.UnsignedInt
-  sales_id            Int     @default(0) @db.UnsignedInt
-  source              Int     @default(0) @db.UnsignedTinyInt
-  email               String  @default("") @db.VarChar(60)
-  mobile              String  @default("") @db.VarChar(50)
-  belong_to           Int     @default(0) @db.TinyInt
-  customer_type       Int     @default(0) @db.TinyInt
-  province            Int     @default(0)
-  area_id             Int     @default(0)
-  city_id             Int     @default(0)
-  contact_name        String  @default("") @db.VarChar(50)
-  contact_phone       String  @default("") @db.VarChar(16)
-  customer_name       String  @default("") @db.VarChar(100)
-  position            String  @default("") @db.VarChar(30)
-  search_link         String  @default("") @db.VarChar(255)
-  search_keyword      String  @default("") @db.VarChar(100)
-  register_method     Boolean @default(false)
-  create_time         Int     @default(0)
-  update_time         Int     @default(0)
-  status              Boolean @default(true)
-  contact_count       Int     @default(0) @db.TinyInt
-  sale_contact_count  Int     @default(0) @db.TinyInt
-  is_intention        Boolean @default(false)
-  no_intention_reason Boolean @default(false)
-  remark              String  @default("") @db.VarChar(255)
-  clue_id             Int     @default(0)
-  activity_name       String  @default("") @db.VarChar(100)
-  activity_time       String  @default("") @db.VarChar(30)
-  admin_id            Int     @default(0)
-  admin_time          Int     @default(0)
-  register_url        String  @default("") @db.VarChar(255)
-  start_url           String  @default("") @db.VarChar(255)
-  is_del              Boolean @default(false)
-  config              String? @db.LongText
-  no_contact_reason   Boolean @default(false)
-  allot_id            Int?    @default(0)
-  is_holiday          Int     @default(0) @db.TinyInt
+  id                  Int      @id @default(autoincrement()) @db.UnsignedInt
+  user_id             Int      @default(0) @db.UnsignedInt
+  sales_id            Int      @default(0) @db.UnsignedInt
+  source              Int      @default(0) @db.UnsignedTinyInt
+  email               String   @default("") @db.VarChar(60)
+  mobile              String   @default("") @db.VarChar(50)
+  belong_to           Int      @default(0) @db.TinyInt
+  customer_type       Int      @default(0) @db.TinyInt
+  province            Int      @default(0)
+  area_id             Int      @default(0)
+  city_id             Int      @default(0)
+  contact_name        String   @default("") @db.VarChar(50)
+  contact_phone       String   @default("") @db.VarChar(16)
+  customer_name       String   @default("") @db.VarChar(100)
+  position            String   @default("") @db.VarChar(30)
+  search_link         String   @default("") @db.VarChar(255)
+  search_keyword      String   @default("") @db.VarChar(100)
+  register_method     Boolean  @default(false)
+  create_time         Int      @default(0)
+  update_time         Int      @default(0)
+  status              Boolean  @default(true)
+  contact_count       Int      @default(0) @db.TinyInt
+  sale_contact_count  Int      @default(0) @db.TinyInt
+  is_intention        Boolean  @default(false)
+  no_intention_reason Boolean  @default(false)
+  remark              String   @default("") @db.VarChar(255)
+  clue_id             Int      @default(0)
+  activity_name       String   @default("") @db.VarChar(100)
+  activity_time       String   @default("") @db.VarChar(30)
+  admin_id            Int      @default(0)
+  admin_time          Int      @default(0)
+  register_url        String   @default("") @db.VarChar(512)
+  start_url           String   @default("") @db.VarChar(512)
+  is_del              Boolean  @default(false)
+  config              String?  @db.LongText
+  no_contact_reason   Boolean? @default(false)
+  allot_id            Int?     @default(0)
+  is_holiday          Int      @default(0) @db.TinyInt
 
   @@index([email], map: "index_email")
   @@index([mobile], map: "index_mobile")
@@ -4015,30 +2780,6 @@ model rcloud_crm_clue_receive_record {
 
   @@index([clue_id], map: "idx_clue_id")
   @@index([receive_by], map: "idx_receive_by")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_crm_dashboard {
-  id                           Int      @id @default(autoincrement()) @db.UnsignedInt
-  day                          Int      @default(0)
-  clue_pool_total_count        Int      @default(0)
-  clue_pool_intention_count    Int      @default(0)
-  clue_pool_no_intention_count Int      @default(0)
-  clue_pool_wait_handle_count  Int      @default(0)
-  clue_total_count             Int      @default(0)
-  clue_im_count                Int      @default(0)
-  clue_rtc_count               Int      @default(0)
-  clue_im_rtc_count            Int      @default(0)
-  clue_other_count             Int      @default(0)
-  clue_recharge_count          Int      @default(0)
-  type                         Int      @default(0) @db.TinyInt
-  status                       Int      @default(1) @db.TinyInt
-  create_by                    Int      @default(0) @db.UnsignedInt
-  update_by                    Int      @default(0) @db.UnsignedInt
-  create_time                  DateTime @default(now()) @db.Timestamp(0)
-  update_time                  DateTime @default(now()) @db.Timestamp(0)
-
-  @@index([day], map: "idx_day")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -4089,6 +2830,7 @@ model rcloud_crm_sale_import_task_item {
   create_time             Int    @default(0)
   update_time             Int    @default(0)
 
+  @@index([crm_sale_import_task_id], map: "idx_crm_sale_import_task_id")
   @@index([user_id], map: "idx_user_id")
 }
 
@@ -4103,7 +2845,7 @@ model rcloud_crm_sale_pre_support_record {
   follow_content     String @default("") @db.VarChar(256)
   follow_time        Int    @default(0)
   state              Int    @default(0) @db.TinyInt
-  is_del             Int    @default(2) @db.TinyInt
+  is_del             Int    @default(0) @db.TinyInt
   create_by          Int    @default(0)
   update_by          Int    @default(0)
   create_time        Int    @default(0)
@@ -4125,7 +2867,7 @@ model rcloud_crm_sale_pre_support_record_file {
   create_time                    Int    @default(0)
   update_time                    Int    @default(0)
 
-  @@index([crm_sale_pre_support_record_id], map: "idx_crm_sale_pre_support_record_id")
+  @@index([crm_sale_pre_support_record_id], map: "idx_support_record_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -4196,8 +2938,8 @@ model rcloud_crm_user_change_record {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_crm_user_tag {
   id          Int    @id @default(autoincrement()) @db.UnsignedInt
-  name        String @default("") @db.VarChar(256)
-  color       String @default("") @db.VarChar(256)
+  name        String @default("") @db.VarChar(32)
+  color       String @default("") @db.VarChar(16)
   is_del      Int    @default(0) @db.TinyInt
   create_by   Int    @default(0) @db.UnsignedInt
   update_by   Int    @default(0) @db.UnsignedInt
@@ -4319,7 +3061,7 @@ model rcloud_customer_management_log {
   second_proportion      Decimal @default(0.00) @db.Decimal(8, 2)
   secondary_time         String? @default("") @db.VarChar(15)
   main_time              String? @default("") @db.VarChar(15)
-  operate_id             Int     @default(0)
+  operate_id             Int?    @default(0)
 }
 
 model rcloud_customer_tags {
@@ -4379,8 +3121,6 @@ model rcloud_data_center_config {
   is_replace  Boolean @default(false)
   admin_id    Int     @default(0)
   remark      String  @default("") @db.VarChar(100)
-  idc         String  @default("") @db.VarChar(100)
-  env_id      String? @db.VarChar(100)
   create_time Int     @default(0)
   update_time Int     @default(0)
   is_del      Boolean @default(false)
@@ -4401,7 +3141,6 @@ model rcloud_dcp_info {
   request       String   @db.Text
   result        String   @db.Text
   other_config  String   @db.Text
-  approval_type Int      @default(1) @db.UnsignedTinyInt
   dcp_id        Int
   is_del        Boolean  @default(false)
   run_status    Boolean? @default(false)
@@ -4414,20 +3153,21 @@ model rcloud_dcp_info {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_demo_user_experience {
-  id              Int    @id @default(autoincrement()) @db.UnsignedInt
-  demo_type       Int    @default(0) @db.TinyInt
-  mobile          String @db.VarChar(11)
-  channel         String @default("") @db.VarChar(32)
-  client_type     String @default("") @db.VarChar(32)
-  version         String @default("") @db.VarChar(32)
-  is_verify       Int    @default(0) @db.UnsignedTinyInt
-  is_developer    Int    @default(0) @db.UnsignedTinyInt
-  register_time   String @default("") @db.VarChar(12)
-  experience_time String @default("") @db.VarChar(12)
-  create_time     String @default("") @db.VarChar(12)
-  update_time     String @default("") @db.VarChar(12)
-  is_del          Int    @default(0) @db.UnsignedTinyInt
-  country         String @default("中国") @db.VarChar(30)
+  id              Int     @id @default(autoincrement()) @db.UnsignedInt
+  demo_type       Int     @default(0) @db.TinyInt
+  mobile          String  @db.VarChar(11)
+  channel         String  @default("") @db.VarChar(32)
+  client_type     String  @default("") @db.VarChar(32)
+  version         String  @default("") @db.VarChar(32)
+  is_verify       Int     @default(0) @db.UnsignedTinyInt
+  is_developer    Int     @default(0) @db.UnsignedTinyInt
+  register_time   String  @default("") @db.VarChar(12)
+  experience_time String  @default("") @db.VarChar(12)
+  create_time     String  @default("") @db.VarChar(12)
+  update_time     String  @default("") @db.VarChar(12)
+  is_del          Int     @default(0) @db.UnsignedTinyInt
+  country         String  @default("中国") @db.VarChar(30)
+  register_method Boolean @default(false)
 
   @@index([experience_time], map: "experience_time")
   @@index([mobile], map: "index_1")
@@ -4435,36 +3175,6 @@ model rcloud_demo_user_experience {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_demos {
-  id            Int    @id @default(autoincrement())
-  site          Int    @default(1) @db.UnsignedTinyInt
-  type          Int    @default(1) @db.UnsignedTinyInt
-  name          String @default("") @db.VarChar(128)
-  version       String @default("") @db.VarChar(32)
-  description   String @db.Text
-  comment       String @db.Text
-  is_new        Int    @default(0) @db.UnsignedTinyInt
-  is_mobile     Int    @default(0) @db.UnsignedTinyInt
-  client        String @db.Text
-  download_list String @db.Text
-  qrcode_list   String @db.Text
-  source_list   String @db.Text
-  business_type Int    @default(0) @db.TinyInt
-  image         String @default("") @db.VarChar(500)
-  tags          String @default("") @db.VarChar(500)
-  status        Int    @default(0) @db.UnsignedTinyInt
-  sort          Int    @default(0) @db.UnsignedTinyInt
-  admin_id      Int    @default(0) @db.UnsignedInt
-  created_at    Int    @default(0)
-  updated_at    Int    @default(0)
-  deleted_at    Int?
-  icon_list     String @db.Text
-  img_list      String @db.Text
-
-  @@index([name], map: "name")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_demos_copy {
   id            Int    @id @default(autoincrement())
   site          Int    @default(1) @db.UnsignedTinyInt
   type          Int    @default(1) @db.UnsignedTinyInt
@@ -4575,111 +3285,6 @@ model rcloud_email_queue {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_email_queue_2023 {
-  id                Int     @id @default(autoincrement()) @db.UnsignedInt
-  title             String  @default("") @db.VarChar(200)
-  content           String? @db.MediumText
-  email             String  @default("") @db.VarChar(200)
-  status            Boolean @default(false)
-  create_time       Int     @default(0)
-  send_time         Int     @default(0)
-  attachment        String  @default("") @db.VarChar(255)
-  email_template_id Int     @default(0)
-  type              String  @default("") @db.VarChar(10)
-
-  @@index([create_time], map: "create_time")
-  @@index([email], map: "index_email")
-  @@index([status], map: "status")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_enterprise_wechat_department {
-  id            Int      @id @default(autoincrement())
-  department_id Int      @default(0)
-  name          String   @default("") @db.VarChar(255)
-  parentid      Int      @default(0)
-  order         String   @default("") @db.VarChar(50)
-  status        Boolean  @default(true)
-  create_time   DateTime @default(now()) @db.DateTime(0)
-  update_time   DateTime @default(now()) @db.DateTime(0)
-
-  @@index([status], map: "status")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_enterprise_wechat_department_user {
-  id              Int      @id @default(autoincrement())
-  department_name String   @default("") @db.VarChar(255)
-  userid          String   @default("") @db.VarChar(255)
-  name            String   @default("") @db.VarChar(255)
-  mobile          Int      @default(0)
-  nick_name       String   @default("") @db.VarChar(255)
-  status          Boolean  @default(true)
-  create_time     DateTime @default(now()) @db.DateTime(0)
-  update_time     DateTime @default(now()) @db.DateTime(0)
-
-  @@index([status], map: "status")
-  @@index([userid(length: 191)], map: "userid")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_enterprise_wechat_group_chat_list {
-  id                Int      @id @default(autoincrement())
-  chat_id           String   @default("") @db.VarChar(255)
-  follow_up_status  Int      @default(0) @db.UnsignedTinyInt
-  name              String   @default("") @db.VarChar(255)
-  owner             String   @default("") @db.VarChar(255)
-  group_create_time Int      @default(0)
-  notice            String   @default("") @db.VarChar(1000)
-  type              Boolean  @default(true)
-  status            Boolean  @default(true)
-  create_time       DateTime @default(now()) @db.DateTime(0)
-  update_time       DateTime @default(now()) @db.DateTime(0)
-
-  @@index([chat_id(length: 191)], map: "chat_id")
-  @@index([status], map: "status")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_enterprise_wechat_group_chat_user_list {
-  id             Int      @id @default(autoincrement())
-  chat_id        String   @default("") @db.VarChar(255)
-  userid         String   @default("") @db.VarChar(255)
-  type           Int      @default(1)
-  join_time      Int      @default(1)
-  join_scene     Int      @default(1)
-  group_nickname String   @default("") @db.VarChar(255)
-  status         Boolean  @default(true)
-  create_time    DateTime @default(now()) @db.DateTime(0)
-  update_time    DateTime @default(now()) @db.DateTime(0)
-
-  @@index([chat_id(length: 191)], map: "chat_id")
-  @@index([status], map: "status")
-  @@index([userid(length: 191)], map: "userid")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_enterprise_wechat_group_chat_user_news_202109 {
-  id               Int      @id @default(autoincrement())
-  chat_id          String   @default("") @db.VarChar(255)
-  userid           String   @default("") @db.VarChar(255)
-  news_create_time Int      @default(1)
-  msg_type         Boolean  @default(true)
-  content          String?  @db.Text
-  media_id         String   @default("") @db.VarChar(255)
-  value            String   @default("") @db.VarChar(255)
-  msg_id           String   @default("") @db.VarChar(255)
-  agent_id         Int      @default(1)
-  create_date      Int      @default(1)
-  create_time      DateTime @default(now()) @db.DateTime(0)
-  update_time      DateTime @default(now()) @db.DateTime(0)
-
-  @@index([chat_id(length: 191)], map: "chat_id")
-  @@index([create_date], map: "create_date")
-  @@index([userid(length: 191)], map: "userid")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_exclusive {
   id            Int     @id @default(autoincrement())
   app_id        Int     @default(0)
@@ -4692,26 +3297,11 @@ model rcloud_exclusive {
   remark        String  @default("") @db.VarChar(255)
   status        Int     @default(0)
   service       Int?    @default(0)
-  charging_type Boolean @default(true)
   remind_config String? @default("") @db.VarChar(200)
   admin_id      Int?    @default(0)
-}
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_exclusive_copy {
-  id            Int     @id @default(autoincrement())
-  app_id        Int     @default(0)
-  user_id       Int     @default(0)
-  remind        Int     @default(0)
-  close         Int     @default(0)
-  utime         Int     @default(0)
-  ctime         Int     @default(0)
-  start         Int     @default(0)
-  remark        String  @default("") @db.VarChar(255)
-  status        Int     @default(0)
-  service       Int?    @default(0)
-  remind_config String? @default("") @db.VarChar(200)
-  admin_id      Int?    @default(0)
+  @@index([app_id], map: "app_id")
+  @@index([user_id], map: "user_id")
 }
 
 model rcloud_exclusive_info {
@@ -4741,8 +3331,7 @@ model rcloud_exclusive_protected {
   type             Int     @default(0) @db.UnsignedTinyInt
   operation_status Boolean @default(false)
   operation        Int     @default(0) @db.UnsignedTinyInt
-  charging_type    Boolean @default(true)
-  message_count    BigInt  @default(0)
+  message_count    BigInt? @default(0)
   end_date         Int     @default(0) @db.UnsignedInt
   send_remark      String  @default("") @db.VarChar(100)
   remark           String  @default("") @db.VarChar(200)
@@ -4763,7 +3352,6 @@ model rcloud_exclusive_protected_order {
   server        Int     @default(0)
   operation     Boolean @default(false)
   charge_type   Boolean @default(false)
-  charging_type Boolean @default(true)
   discount      String  @default("100") @db.VarChar(10)
   should_money  Decimal @default(0.00) @db.Decimal(11, 2)
   money         Decimal @default(0.00) @db.Decimal(11, 2)
@@ -4802,7 +3390,7 @@ model rcloud_exclusives {
   Port         Int?
   ProjectName  String? @db.VarChar(128)
   SetName      String? @db.VarChar(128)
-  Args         String? @db.VarChar(128)
+  Args         String? @default("NUll") @db.VarChar(128)
   InstanceId   String? @db.VarChar(45)
   Eip          String? @db.VarChar(45)
   Owner        String? @db.VarChar(45)
@@ -4811,18 +3399,6 @@ model rcloud_exclusives {
   SetID        Int?    @default(0)
 
   @@index([PartitionKey], map: "PartitionKey_Idx")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_feishu_approval {
-  id            Int       @id @default(autoincrement())
-  name          String?   @default("") @db.VarChar(255)
-  dcp_query_id  String?   @default("") @db.VarChar(255)
-  approval_name String?   @default("") @db.VarChar(255)
-  approval_code String?   @default("") @db.VarChar(255)
-  approval_form String?   @db.Text
-  callback_url  String?   @db.VarChar(512)
-  update_time   DateTime? @default(now()) @db.Timestamp(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -4961,25 +3537,6 @@ model rcloud_huawei_cloud_license {
   license       String @default("") @db.VarChar(255)
   created_at    Int    @db.UnsignedInt
   updated_at    Int    @db.UnsignedInt
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_identity_certification_enterprise {
-  id               Int     @id @default(autoincrement())
-  user_id          Int     @default(0)
-  attestation_mode Boolean @default(false)
-  company_name     String  @default("") @db.VarChar(100)
-  region           String  @default("") @db.VarChar(255)
-  credential_no    String  @default("") @db.VarChar(60)
-  contact_mode     String  @default("") @db.VarChar(50)
-  attestation_type Boolean @default(false)
-  status           Boolean @default(false)
-  application_url  String  @default("") @db.VarChar(255)
-  create_date      Int     @default(0)
-  create_time      Int     @default(0)
-  update_time      Int     @default(0)
-
-  @@index([user_id], map: "user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -5148,7 +3705,7 @@ model rcloud_live_cdn_domain {
 
   @@index([app_id], map: "app_id")
   @@index([vendor, user_id, app_id, env, flow], map: "idx_app_id_user_id_env_flow_vendor")
-  @@index([vendor, domain(length: 191)], map: "idx_domain_vendor")
+  @@index([vendor, domain], map: "idx_domain_vendor")
   @@index([ssl_certificate_id, ssl_certificate_status], map: "idx_ssl_certificate")
   @@index([vendor, cdn_push_id], map: "idx_vendor_cdn_push_id")
   @@index([user_id], map: "user_id")
@@ -5163,6 +3720,7 @@ model rcloud_live_cdn_ssl_certificate {
   be_overdue_time        Int      @default(0)
   certificate_content    String?  @db.Text
   secret_key             String?  @db.Text
+  ca_content             String?  @db.Text
   remarks                String   @default("") @db.VarChar(256)
   wang_su_certificate_id String   @default("") @db.VarChar(50)
   status                 Boolean  @default(true)
@@ -5436,34 +3994,6 @@ model rcloud_mobile_log {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_mobile_sdk {
-  id           Int       @id @default(autoincrement())
-  name         String    @db.VarChar(255)
-  os           String    @db.VarChar(255)
-  product      String?   @db.VarChar(255)
-  type         Int
-  version      String    @db.VarChar(255)
-  version_int  Int
-  version_type String    @db.VarChar(255)
-  download_url String    @db.VarChar(512)
-  package_time DateTime? @db.Timestamp(0)
-  package_url  String?   @db.VarChar(512)
-  description  String?   @db.VarChar(512)
-  status       Int       @default(1) @db.TinyInt
-  create_by    Int       @default(0) @db.UnsignedInt
-  update_by    Int       @default(0) @db.UnsignedInt
-  create_time  DateTime  @default(now()) @db.Timestamp(0)
-  update_time  DateTime  @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_mobile_sdk_dependency {
-  id       Int @id @default(autoincrement())
-  basic_id Int
-  sub_id   Int
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_mp_verify_log {
   Id            Int       @id @default(autoincrement()) @db.UnsignedInt
   ctype         String    @default("1") @db.VarChar(6)
@@ -5504,7 +4034,7 @@ model rcloud_news_roam {
   create_time Int?      @db.UnsignedInt
   update_time DateTime? @db.Timestamp(0)
 
-  @@index([app_key], map: "news_roam_app_key")
+  @@fulltext([app_key], map: "news_roam_app_key")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -5534,7 +4064,6 @@ model rcloud_notification {
   updated_at  Int     @default(0) @db.UnsignedInt
   deleted_at  Int?    @db.UnsignedInt
   remark      String? @default("") @db.VarChar(255)
-  code        BigInt  @default(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -5544,12 +4073,11 @@ model rcloud_notification_records {
   app_id          Int     @db.UnsignedInt
   user_id         Int     @db.UnsignedInt
   service         Int     @db.UnsignedInt
-  operation       Boolean @default(false)
-  n               Boolean @default(false)
+  operation       Boolean
+  n               Boolean
   except_close_at String  @db.VarChar(50)
   status          Int     @db.UnsignedTinyInt
   has_delay       Boolean
-  config          String  @default("{}") @db.VarChar(5000)
   created_at      Int
   updated_at      Int
   deleted_at      Int?
@@ -5638,22 +4166,6 @@ model rcloud_online_subscribe {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_op_log {
-  id          Int    @id @default(autoincrement()) @db.UnsignedInt
-  track_id    Int    @default(0)
-  user_id     Int    @default(0)
-  event_type  String @default("") @db.VarChar(32)
-  from_page   String @default("") @db.VarChar(32)
-  from_module String @default("") @db.VarChar(32)
-  op_date     Int    @default(0)
-  create_by   Int    @default(0)
-  create_time Int    @default(0)
-
-  @@index([track_id], map: "idx_track_id")
-  @@index([user_id], map: "idx_user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_operation {
   id            Int     @id @default(autoincrement()) @db.UnsignedInt
   source_table  String  @default("") @db.VarChar(50)
@@ -5724,8 +4236,8 @@ model rcloud_order {
   money         Decimal @db.Decimal(11, 2)
   out_no        String  @default("0") @db.VarChar(50)
   payment       String  @default("ALIPAY") @db.VarChar(20)
-  ctime         Int     @default(0)
-  utime         Int     @default(0)
+  ctime         Int
+  utime         Int
   status        Boolean
   app_id        Int?
   service_id    Int     @default(0) @db.UnsignedInt
@@ -5752,7 +4264,7 @@ model rcloud_order_will_pay {
   money_distribution String  @default("") @db.VarChar(500)
   service_type       Int     @default(0) @db.UnsignedTinyInt
   service_config     String  @default("") @db.VarChar(500)
-  discount_config    String  @default("") @db.VarChar(5000)
+  discount_config    String  @default("") @db.VarChar(500)
   gift_config        String? @default("") @db.VarChar(500)
   activity           String  @default("") @db.VarChar(50)
 }
@@ -5830,12 +4342,13 @@ model rcloud_press_edition_push_rule_list {
   rule_name   String @default("") @db.VarChar(100)
   object_name String @default("") @db.VarChar(100)
   plat        Int    @default(1)
-  content     String @default("") @db.VarChar(512)
-  versions    String @default("") @db.VarChar(512)
+  content     String @default("") @db.VarChar(255)
+  versions    String @default("") @db.VarChar(255)
   create_time Int    @default(0)
   update_time Int    @default(0)
 
   @@index([app_key], map: "app_key")
+  @@index([app_key, plat], map: "object_name_plat")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -5876,27 +4389,6 @@ model rcloud_push_history {
   create_time DateTime @default(now()) @db.Timestamp(0)
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_push_record {
-  id          Int     @id @default(autoincrement())
-  app_id      Int     @default(0)
-  env         Boolean @default(true)
-  user_id     Int     @default(0)
-  push_id     Int     @default(0)
-  rule_name   String  @default("") @db.VarChar(100)
-  name        String  @default("") @db.VarChar(50)
-  platform    String  @default("") @db.VarChar(255)
-  versions    String  @default("") @db.VarChar(255)
-  content     String  @default("") @db.VarChar(50)
-  admin_id    Int     @default(0)
-  create_time Int     @default(0)
-  update_time Int     @default(0)
-  is_del      Int     @default(0) @db.TinyInt
-
-  @@index([app_id], map: "app_Id")
-  @@index([user_id], map: "user_id")
-}
-
 model rcloud_push_template {
   id            Int     @id @default(autoincrement()) @db.UnsignedInt
   app_id        Int
@@ -5904,7 +4396,6 @@ model rcloud_push_template {
   app_key       String  @db.VarChar(255)
   template_id   String  @db.VarChar(255)
   template_name String  @db.VarChar(255)
-  template_type String  @db.VarChar(255)
   content       String  @db.Text
   created_at    Int
   updated_at    Int
@@ -5958,35 +4449,6 @@ model rcloud_question_category_old {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_recharge_list {
-  id                       Int     @id @default(autoincrement()) @db.UnsignedInt
-  service_id               Int     @default(0)
-  img_balance              String  @default("") @db.VarChar(255)
-  img_arrears              String  @default("") @db.VarChar(255)
-  active_url               String  @default("") @db.VarChar(255)
-  active_begin             Int     @default(0)
-  active_end               Int     @default(0)
-  recharge_url             String  @default("") @db.VarChar(255)
-  sort                     Int     @default(0)
-  utime                    Int     @default(0)
-  charge_explain           String  @db.Text
-  always_show              Boolean @default(false)
-  is_new                   Boolean @default(false)
-  service_describe         String  @db.Text
-  charge_dimension         Int     @default(0) @db.UnsignedTinyInt
-  charge_type              Int     @default(0) @db.UnsignedTinyInt
-  price                    Decimal @default(0.00) @db.Decimal(10, 2)
-  min_price                Decimal @default(0.00) @db.Decimal(10, 2)
-  discount                 String  @db.Text
-  package_config           String  @db.Text
-  charge_describe          String  @db.Text
-  regular_switch           Int?    @default(0) @db.TinyInt
-  regular_discount         String  @db.Text
-  regular_price            Decimal @default(0.00) @db.Decimal(10, 2)
-  internal_charge_describe String  @db.Text
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_recharge_list_copy {
   id                       Int     @id @default(autoincrement()) @db.UnsignedInt
   service_id               Int     @default(0)
   img_balance              String  @default("") @db.VarChar(255)
@@ -6148,58 +4610,7 @@ model rcloud_reply_log {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_rongyun_transfer_record {
-  id                       Int      @id @default(autoincrement()) @db.UnsignedInt
-  user_id                  Int      @default(0) @db.UnsignedInt
-  operation_type           Int      @default(0)
-  operation_name           String   @default("") @db.VarChar(100)
-  service_id               Int      @default(0)
-  app_id                   Int      @default(0)
-  rongyun_books_balance    Decimal  @db.Decimal(11, 2)
-  rongyun_no_invoice_money Decimal  @db.Decimal(11, 2)
-  transfer_money           Decimal  @db.Decimal(11, 2)
-  remarks                  String   @db.Text
-  enclosure_url            String   @default("") @db.VarChar(255)
-  launch_admin_id          Int      @default(0)
-  approval_status          Boolean  @default(true)
-  check_admin_id           Int      @default(0)
-  approval_reason          String   @default("") @db.VarChar(255)
-  approval_at              Int      @default(0)
-  recharge_transfer_info   String   @db.Text
-  chargeing_order_id       BigInt   @default(0)
-  collect_money_order_id   BigInt   @default(0)
-  create_date              DateTime @default(now()) @db.DateTime(0)
-  update_date              DateTime @default(now()) @db.DateTime(0)
-
-  @@index([app_id], map: "rcloud_app_id")
-  @@index([approval_status], map: "rcloud_approval_status")
-  @@index([user_id], map: "rcloud_user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_rtc_check_stat {
-  id             Int     @id @default(autoincrement())
-  user_id        Int
-  app_id         Int
-  server_id      Int
-  env            Boolean @default(false)
-  product        String  @db.VarChar(50)
-  type           String  @default("") @db.VarChar(50)
-  value          Int     @default(0)
-  pay_value      Int     @default(0)
-  money          Decimal @default(0.0000) @db.Decimal(10, 4)
-  date           Int     @default(0)
-  is_abroad      Int     @default(0) @db.UnsignedTinyInt
-  is_charge_item Int     @default(1) @db.UnsignedTinyInt
-  cluster        String  @default("") @db.VarChar(100)
-
-  @@index([app_id], map: "app_id")
-  @@index([date], map: "date")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_rtc_check_stat_20221025 {
   id        Int     @id @default(autoincrement())
   user_id   Int
   app_id    Int
@@ -6209,32 +4620,10 @@ model rcloud_rtc_check_stat_20221025 {
   type      String  @default("") @db.VarChar(50)
   value     Int     @default(0)
   pay_value Int     @default(0)
-  money     Decimal @default(0.0000) @db.Decimal(10, 4)
+  money     Decimal @default(0.0000) @db.Decimal(12, 4)
   date      Int     @default(0)
   is_abroad Int     @default(0) @db.UnsignedTinyInt
   cluster   String  @default("") @db.VarChar(100)
-
-  @@index([app_id], map: "app_id")
-  @@index([date], map: "date")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_rtc_check_stat_20230406 {
-  id             Int     @id @default(autoincrement())
-  user_id        Int
-  app_id         Int
-  server_id      Int
-  env            Boolean @default(false)
-  product        String  @db.VarChar(50)
-  type           String  @default("") @db.VarChar(50)
-  value          Int     @default(0)
-  pay_value      Int     @default(0)
-  money          Decimal @default(0.0000) @db.Decimal(10, 4)
-  date           Int     @default(0)
-  is_abroad      Int     @default(0) @db.UnsignedTinyInt
-  is_charge_item Int     @default(1) @db.UnsignedTinyInt
-  cluster        String  @default("") @db.VarChar(100)
 
   @@index([app_id], map: "app_id")
   @@index([date], map: "date")
@@ -6346,93 +4735,6 @@ model rcloud_rtc_stat_20200818 {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_rtc_stat_20221205 {
-  id            Int     @id @default(autoincrement())
-  user_id       Int
-  app_id        Int     @default(0)
-  server_id     Int
-  env           Boolean @default(false)
-  business_type Boolean @default(false)
-  money_type    Boolean @default(true)
-  flow_type     Int     @default(0) @db.TinyInt
-  value         Int     @default(0)
-  pay_value     Int     @default(0)
-  type          Boolean @default(false)
-  date          Int     @default(0)
-  ctime         Int?    @default(0)
-  money         Float   @default(0.0000) @db.Float
-  virtual_money Float?  @default(0.0000) @db.Float
-  is_use        Boolean @default(false)
-
-  @@index([app_id], map: "app_id")
-  @@index([date, server_id], map: "date_server_id")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_rtc_stat_expect {
-  id            Int     @id @default(autoincrement())
-  user_id       Int
-  app_id        Int     @default(0)
-  app_key       String  @default("") @db.VarChar(100)
-  server_id     Int
-  env           Boolean @default(false)
-  business_type Boolean @default(false)
-  money_type    Boolean @default(true)
-  flow_type     Int     @default(0) @db.TinyInt
-  value         Int     @default(0)
-  pay_value     Int     @default(0)
-  type          Boolean @default(false)
-  month         Int     @default(0)
-  date          Int     @default(0)
-  ctime         Int?    @default(0)
-  money         Float   @default(0.0000) @db.Float
-  virtual_money Float?  @default(0.0000) @db.Float
-  is_use        Boolean @default(false)
-  tag           String  @default("") @db.VarChar(500)
-  discount      Decimal @default(100.00) @db.Decimal(8, 2)
-
-  @@index([app_id], map: "app_id")
-  @@index([month, server_id], map: "date_server_id")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_rtc_statistics {
-  id              Int     @id @default(autoincrement())
-  user_id         Int     @default(0)
-  app_id          Int     @default(0)
-  server_id       Int
-  create_time     Int
-  rtc_id          String  @default("") @db.VarChar(100)
-  room            String  @default("") @db.VarChar(255)
-  uuid            String  @db.VarChar(100)
-  type0_times     Int     @default(0)
-  type1_times     Int     @default(0)
-  type2_times     Int     @default(0)
-  type3_times     Int     @default(0)
-  type4_times     Int     @default(0)
-  type5_times     Int     @default(0)
-  type6_times     Int     @default(0)
-  type7_times     Int     @default(0)
-  type0_pay_times Int     @default(0)
-  type1_pay_times Int     @default(0)
-  type2_pay_times Int     @default(0)
-  type3_pay_times Int     @default(0)
-  type4_pay_times Int     @default(0)
-  type5_pay_times Int     @default(0)
-  type6_pay_times Int     @default(0)
-  type7_pay_times Int     @default(0)
-  money           Decimal @default(0.0000) @db.Decimal(8, 4)
-
-  @@index([app_id], map: "app_id")
-  @@index([create_time], map: "create_time")
-  @@index([rtc_id], map: "rtc_id")
-  @@index([server_id], map: "server_id")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_rtc_statistics_daily {
   id              Int     @id @default(autoincrement()) @db.UnsignedInt
   user_id         Int     @default(0) @db.UnsignedInt
@@ -6495,22 +4797,6 @@ model rcloud_sdk_zip {
   tags_url    String @db.VarChar(1000)
   status      Int    @db.TinyInt
   create_time Int    @db.UnsignedInt
-}
-
-model rcloud_sdk_zip_tags {
-  id       Int    @id @default(autoincrement())
-  zip_id   Int    @db.UnsignedInt
-  urls     String @db.VarChar(1000)
-  urls_key String @db.Char(32)
-  status   Int    @db.TinyInt
-}
-
-model rcloud_sdk_zip_tags_copy {
-  id       Int    @id @default(autoincrement())
-  zip_id   Int    @db.UnsignedInt
-  urls     String @db.VarChar(1000)
-  urls_key String @db.Char(32)
-  status   Int    @db.TinyInt
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -6620,140 +4906,6 @@ model rcloud_server_status_notice {
   end_time    String  @default("") @db.VarChar(20)
   create_time String  @default("") @db.VarChar(20)
   is_del      Boolean @default(false)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_service_config {
-  id           Int     @id @default(autoincrement()) @db.UnsignedInt
-  category     Int     @default(1)
-  parent       Int     @default(0)
-  need_opening Int     @default(0) @db.TinyInt
-  sync         Int     @default(0) @db.TinyInt
-  is_common    Int     @default(1) @db.TinyInt
-  name         String  @default("") @db.VarChar(100)
-  call_back    String  @default("") @db.VarChar(200)
-  set_func     String  @default("") @db.VarChar(100)
-  service      Int     @default(0)
-  show         String  @default("") @db.VarChar(20)
-  desc         String  @default("") @db.VarChar(255)
-  tips         String  @default("") @db.VarChar(300)
-  sort         Int     @default(0)
-  admin_id     Int     @default(0)
-  create_time  Int     @default(0)
-  update_time  Int     @default(0)
-  config       String? @db.Text
-  remark       String  @default("") @db.VarChar(100)
-  is_del       Boolean @default(false)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_service_config_0712 {
-  id           Int     @id @default(autoincrement()) @db.UnsignedInt
-  category     Int     @default(1)
-  parent       Int     @default(0)
-  need_opening Int     @default(0) @db.TinyInt
-  sync         Int     @default(0) @db.TinyInt
-  is_common    Int     @default(1) @db.TinyInt
-  name         String  @default("") @db.VarChar(100)
-  call_back    String  @default("") @db.VarChar(200)
-  set_func     String  @default("") @db.VarChar(100)
-  service      Int     @default(0)
-  show         String  @default("") @db.VarChar(20)
-  desc         String  @default("") @db.VarChar(255)
-  tips         String  @default("") @db.VarChar(300)
-  sort         Int     @default(0)
-  admin_id     Int     @default(0)
-  create_time  Int     @default(0)
-  update_time  Int     @default(0)
-  config       String? @db.Text
-  remark       String  @default("") @db.VarChar(100)
-  is_del       Boolean @default(false)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_service_config_0713 {
-  id           Int     @id @default(autoincrement()) @db.UnsignedInt
-  category     Int     @default(1)
-  parent       Int     @default(0)
-  need_opening Int     @default(0) @db.TinyInt
-  sync         Int     @default(0) @db.TinyInt
-  is_common    Int     @default(1) @db.TinyInt
-  name         String  @default("") @db.VarChar(100)
-  call_back    String  @default("") @db.VarChar(200)
-  set_func     String  @default("") @db.VarChar(100)
-  service      Int     @default(0)
-  show         String  @default("") @db.VarChar(20)
-  desc         String  @default("") @db.VarChar(255)
-  tips         String  @default("") @db.VarChar(300)
-  sort         Int     @default(0)
-  admin_id     Int     @default(0)
-  create_time  Int     @default(0)
-  update_time  Int     @default(0)
-  config       String? @db.Text
-  remark       String  @default("") @db.VarChar(100)
-  is_del       Boolean @default(false)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_service_config_0718 {
-  id           Int     @id @default(autoincrement()) @db.UnsignedInt
-  category     Int     @default(1)
-  parent       Int     @default(0)
-  need_opening Int     @default(0) @db.TinyInt
-  sync         Int     @default(0) @db.TinyInt
-  is_common    Int     @default(1) @db.TinyInt
-  name         String  @default("") @db.VarChar(100)
-  call_back    String  @default("") @db.VarChar(200)
-  set_func     String  @default("") @db.VarChar(100)
-  service      Int     @default(0)
-  show         String  @default("") @db.VarChar(20)
-  desc         String  @default("") @db.VarChar(255)
-  tips         String  @default("") @db.VarChar(300)
-  sort         Int     @default(0)
-  admin_id     Int     @default(0)
-  create_time  Int     @default(0)
-  update_time  Int     @default(0)
-  config       String? @db.Text
-  remark       String  @default("") @db.VarChar(100)
-  is_del       Boolean @default(false)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_service_config_0718_1 {
-  id           Int     @id @default(autoincrement()) @db.UnsignedInt
-  category     Int     @default(1)
-  parent       Int     @default(0)
-  need_opening Int     @default(0) @db.TinyInt
-  sync         Int     @default(0) @db.TinyInt
-  is_common    Int     @default(1) @db.TinyInt
-  name         String  @default("") @db.VarChar(100)
-  call_back    String  @default("") @db.VarChar(200)
-  set_func     String  @default("") @db.VarChar(100)
-  service      Int     @default(0)
-  show         String  @default("") @db.VarChar(20)
-  desc         String  @default("") @db.VarChar(255)
-  tips         String  @default("") @db.VarChar(300)
-  sort         Int     @default(0)
-  admin_id     Int     @default(0)
-  create_time  Int     @default(0)
-  update_time  Int     @default(0)
-  config       String? @db.Text
-  remark       String  @default("") @db.VarChar(100)
-  is_del       Boolean @default(false)
-
-  @@map("rcloud_service_config_0718-1")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_service_give_config {
-  id          Int      @id @default(autoincrement())
-  service_id  Int      @default(0)
-  env         Boolean  @default(false)
-  config      Json
-  create_time DateTime @default(now()) @db.DateTime(0)
-  update_time DateTime @default(now()) @db.DateTime(0)
-
-  @@index([service_id], map: "service_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -6896,9 +5048,6 @@ model rcloud_shumei_account {
   access_key   String @default("") @db.VarChar(255)
   organization String @default("") @db.VarChar(255)
   name         String @default("") @db.VarChar(100)
-  phone        String @default("") @db.VarChar(30)
-  email        String @default("") @db.VarChar(127)
-  status       Int    @default(1) @db.UnsignedTinyInt
   created_at   Int    @default(0) @db.UnsignedInt
   updated_at   Int    @default(0) @db.UnsignedInt
   deleted_at   Int?
@@ -6952,7 +5101,7 @@ model rcloud_sight_day {
   status       Int      @default(1) @db.UnsignedTinyInt
   error_msg    String   @default("") @db.VarChar(255)
   sight_switch Boolean? @default(false)
-  amount       Decimal? @default(0.0000) @db.Decimal(12, 4)
+  amount       Decimal? @default(0.0000) @db.Decimal(8, 4)
 
   @@index([app_id], map: "app_id")
   @@index([server_id], map: "server_id")
@@ -7020,16 +5169,8 @@ model rcloud_sms_box {
   create_time Float
   result      String @default("") @db.VarChar(512)
   code        Int?   @default(0)
-}
 
-model rcloud_sms_box_2023 {
-  id          Int    @id @default(autoincrement())
-  mobile      Float  @default(0)
-  content     String @default("") @db.VarChar(512)
-  log_id      Int    @default(0)
-  create_time Float
-  result      String @default("") @db.VarChar(512)
-  code        Int?   @default(0)
+  @@index([mobile], map: "mobile")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7140,7 +5281,7 @@ model rcloud_sms_operation_log {
   content     String @db.Text
   create_time String @default("") @db.VarChar(12)
   update_time String @default("") @db.VarChar(12)
-  remark      String @db.Text
+  remark      String @default("") @db.VarChar(200)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7263,6 +5404,7 @@ model rcloud_sms_template {
   account          String?  @default("") @db.VarChar(200)
   market_service   Int?     @default(0) @db.TinyInt
 
+  @@index([appid], map: "idx_appid")
   @@index([lsm_mid], map: "lsm_mid")
   @@index([mid], map: "mid")
 }
@@ -7394,6 +5536,9 @@ model rcloud_tag_relation {
   created_at Int  @default(0) @db.UnsignedInt
   updated_at Int  @default(0) @db.UnsignedInt
   deleted_at Int?
+
+  @@index([customer], map: "customer")
+  @@index([user_id], map: "user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7513,11 +5658,11 @@ model rcloud_ticket {
   tag_id                 String                   @default("") @db.VarChar(32)
   first                  Int                      @default(1) @db.TinyInt
   mobile                 String?                  @default("") @db.VarChar(15)
-  email                  String                   @default("") @db.VarChar(127)
   create_role            Int?                     @default(0) @db.TinyInt
   exceed_reply           Boolean?                 @default(false)
   rcloud_ticket_transfer rcloud_ticket_transfer[]
 
+  @@index([app_id], map: "idx_app_id")
   @@index([is_read], map: "index_isRead")
   @@index([user_id], map: "index_name")
   @@index([is_admin_reply, is_develop_reply], map: "index_newreply")
@@ -7532,22 +5677,6 @@ model rcloud_ticket_alert {
   time_type  Int?   @unique(map: "alert_type") @db.TinyInt
   content    String @db.VarChar(256)
   createtime Int
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_ticket_category_remind {
-  id        Int      @id @default(autoincrement())
-  business  String?  @default("") @db.VarChar(512)
-  platform  String?  @default("") @db.VarChar(24)
-  os        String?  @default("") @db.VarChar(24)
-  category  String   @db.VarChar(255)
-  tip       String?  @db.LongText
-  template  String?  @db.Text
-  status    Int      @default(0) @db.TinyInt
-  operator  String?  @db.VarChar(255)
-  last_data String?  @db.LongText
-  update_at DateTime @default(now()) @db.DateTime(0)
-  create_at DateTime @default(now()) @db.DateTime(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7650,33 +5779,18 @@ model rcloud_ticket_log {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_ticket_onduty {
-  id          Int       @id @default(autoincrement())
-  uid         Int       @default(0) @db.UnsignedSmallInt
-  week        Int?      @default(1) @db.UnsignedSmallInt
-  start_time  String?   @default("09:30") @db.VarChar(10)
-  end_time    String?   @default("18:30") @db.VarChar(10)
-  otime_id    Int?      @db.UnsignedInt
-  platform    Int?      @default(1) @db.UnsignedSmallInt
-  create_time DateTime? @default(now()) @db.Timestamp(0)
-  update_time Int?      @db.UnsignedInt
-  category    Int?      @default(1) @db.TinyInt
-
-  @@index([uid], map: "FK_ADMINUSER_ID")
-  @@index([otime_id], map: "FK_ONDUTY_TIME_ID")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_ticket_onduty_copy {
-  id          Int       @id @default(autoincrement())
-  uid         Int       @default(0) @db.UnsignedSmallInt
-  week        Int?      @default(1) @db.UnsignedSmallInt
-  start_time  String?   @default("09:30") @db.VarChar(10)
-  end_time    String?   @default("18:30") @db.VarChar(10)
-  otime_id    Int?      @db.UnsignedInt
-  platform    Int?      @default(1) @db.UnsignedSmallInt
-  create_time DateTime? @default(now()) @db.Timestamp(0)
-  update_time Int?      @db.UnsignedInt
-  category    Int?      @default(1) @db.TinyInt
+  id                        Int                        @id @default(autoincrement())
+  uid                       Int                        @default(0) @db.UnsignedSmallInt
+  week                      Int?                       @default(1) @db.UnsignedSmallInt
+  start_time                String?                    @default("09:30") @db.VarChar(10)
+  end_time                  String?                    @default("18:30") @db.VarChar(10)
+  otime_id                  Int?                       @db.UnsignedInt
+  platform                  Int?                       @default(1) @db.UnsignedSmallInt
+  create_time               DateTime?                  @default(now()) @db.Timestamp(0)
+  update_time               Int?                       @db.UnsignedInt
+  category                  Int?                       @default(1) @db.TinyInt
+  rcloud_admin_user         rcloud_admin_user          @relation(fields: [uid], references: [id], onDelete: Cascade, map: "FK_ADMINUSER_ID")
+  rcloud_ticket_onduty_time rcloud_ticket_onduty_time? @relation(fields: [otime_id], references: [id], onDelete: Cascade, map: "FK_ONDUTY_TIME_ID")
 
   @@index([uid], map: "FK_ADMINUSER_ID")
   @@index([otime_id], map: "FK_ONDUTY_TIME_ID")
@@ -7717,12 +5831,13 @@ model rcloud_ticket_onduty_remind {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_ticket_onduty_time {
-  id          Int       @id @default(autoincrement()) @db.UnsignedInt
-  start_time  String?   @db.VarChar(10)
-  end_time    String?   @db.VarChar(10)
-  admin_id    Int       @db.UnsignedInt
-  create_time DateTime? @default(now()) @db.Timestamp(0)
-  update_time Int?      @db.UnsignedInt
+  id                   Int                    @id @default(autoincrement()) @db.UnsignedInt
+  start_time           String?                @db.VarChar(10)
+  end_time             String?                @db.VarChar(10)
+  admin_id             Int                    @db.UnsignedInt
+  create_time          DateTime?              @default(now()) @db.Timestamp(0)
+  update_time          Int?                   @db.UnsignedInt
+  rcloud_ticket_onduty rcloud_ticket_onduty[]
 }
 
 model rcloud_ticket_onduty_user {
@@ -7888,8 +6003,6 @@ model rcloud_tools_task {
   ctime       Int     @default(0) @db.UnsignedInt
   utime       Int     @default(0) @db.UnsignedInt
   admin_id    Int     @default(0) @db.UnsignedInt
-
-  @@index([status, type, utime], map: "idx_status_type_utime")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7902,8 +6015,6 @@ model rcloud_tools_task_detail {
   result_code Boolean @default(false)
   result_info String  @default("") @db.VarChar(255)
   ctime       Int     @default(0) @db.UnsignedInt
-
-  @@index([task_id], map: "idx_task_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7939,16 +6050,17 @@ model rcloud_track_op_log {
   id          Int    @id @default(autoincrement()) @db.UnsignedInt
   track_id    Int    @default(0)
   user_id     Int    @default(0)
-  user_token  String @default("0") @db.VarChar(256)
-  event_type  String @default("0") @db.VarChar(64)
-  from_page   String @default("0") @db.VarChar(64)
-  from_module String @default("0") @db.VarChar(64)
+  user_token  String @default("") @db.VarChar(256)
+  event_type  String @default("") @db.VarChar(64)
+  from_page   String @default("") @db.VarChar(64)
+  from_module String @default("") @db.VarChar(64)
   ext_data    String @db.Text
   op_date     Int    @default(0)
   create_time Int    @default(0)
 
-  @@index([op_date], map: "idx_op_date")
+  @@index([op_date, track_id], map: "idx_op_date")
   @@index([track_id], map: "idx_track_id")
+  @@index([user_id], map: "idx_user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7956,16 +6068,17 @@ model rcloud_track_op_log_2021 {
   id          Int    @id @default(autoincrement()) @db.UnsignedInt
   track_id    Int    @default(0)
   user_id     Int    @default(0)
-  user_token  String @default("0") @db.VarChar(256)
-  event_type  String @default("0") @db.VarChar(32)
-  from_page   String @default("0") @db.VarChar(32)
-  from_module String @default("0") @db.VarChar(32)
+  user_token  String @default("") @db.VarChar(256)
+  event_type  String @default("") @db.VarChar(64)
+  from_page   String @default("") @db.VarChar(64)
+  from_module String @default("") @db.VarChar(64)
   ext_data    String @db.Text
   op_date     Int    @default(0)
   create_time Int    @default(0)
 
-  @@index([op_date], map: "idx_op_date")
+  @@index([op_date, track_id], map: "idx_op_date")
   @@index([track_id], map: "idx_track_id")
+  @@index([user_id], map: "idx_user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -7973,50 +6086,17 @@ model rcloud_track_op_log_2022 {
   id          Int    @id @default(autoincrement()) @db.UnsignedInt
   track_id    Int    @default(0)
   user_id     Int    @default(0)
-  user_token  String @default("0") @db.VarChar(256)
-  event_type  String @default("0") @db.VarChar(64)
-  from_page   String @default("0") @db.VarChar(64)
-  from_module String @default("0") @db.VarChar(64)
+  user_token  String @default("") @db.VarChar(256)
+  event_type  String @default("") @db.VarChar(64)
+  from_page   String @default("") @db.VarChar(64)
+  from_module String @default("") @db.VarChar(64)
   ext_data    String @db.Text
   op_date     Int    @default(0)
   create_time Int    @default(0)
 
-  @@index([op_date], map: "idx_op_date")
+  @@index([op_date, track_id], map: "idx_op_date")
   @@index([track_id], map: "idx_track_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_track_op_log_2023 {
-  id          Int    @id @default(autoincrement()) @db.UnsignedInt
-  track_id    Int    @default(0)
-  user_id     Int    @default(0)
-  user_token  String @default("0") @db.VarChar(256)
-  event_type  String @default("0") @db.VarChar(64)
-  from_page   String @default("0") @db.VarChar(64)
-  from_module String @default("0") @db.VarChar(64)
-  ext_data    String @db.Text
-  op_date     Int    @default(0)
-  create_time Int    @default(0)
-
-  @@index([op_date], map: "idx_op_date")
-  @@index([track_id], map: "idx_track_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_track_op_log_2024 {
-  id          Int    @id @default(autoincrement()) @db.UnsignedInt
-  track_id    Int    @default(0)
-  user_id     Int    @default(0)
-  user_token  String @default("0") @db.VarChar(256)
-  event_type  String @default("0") @db.VarChar(64)
-  from_page   String @default("0") @db.VarChar(64)
-  from_module String @default("0") @db.VarChar(64)
-  ext_data    String @db.Text
-  op_date     Int    @default(0)
-  create_time Int    @default(0)
-
-  @@index([op_date], map: "idx_op_date")
-  @@index([track_id], map: "idx_track_id")
+  @@index([user_id], map: "idx_user_id")
 }
 
 model rcloud_trade {
@@ -8041,13 +6121,14 @@ model rcloud_trade_test {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_tupu_account {
-  id            Int    @id @default(autoincrement()) @db.UnsignedInt
-  user_id       Int    @default(0) @db.UnsignedInt
-  register_info String @default("") @db.VarChar(255)
-  account_id    String @default("") @db.VarChar(255)
-  account_name  String @default("") @db.VarChar(100)
-  created_at    Int    @default(0)
-  updated_at    Int    @default(0)
+  id            Int     @id @default(autoincrement()) @db.UnsignedInt
+  user_id       Int     @default(0) @db.UnsignedInt
+  register_info String? @default("") @db.VarChar(255)
+  email         String  @default("") @db.VarChar(255)
+  account_id    String  @default("") @db.VarChar(255)
+  account_name  String  @default("") @db.VarChar(100)
+  created_at    Int     @default(0)
+  updated_at    Int     @default(0)
 
   @@index([user_id], map: "rcloud_tupu_account_user_id")
 }
@@ -8059,7 +6140,7 @@ model rcloud_tupu_app {
   user_id      Int     @default(0) @db.UnsignedInt
   env          Boolean @default(false)
   app_key      String  @default("") @db.VarChar(50)
-  conversation String  @default("") @db.VarChar(50)
+  conversation String  @db.VarChar(50)
   type         String  @default("") @db.VarChar(20)
   free         Int     @default(0)
   app_name     String  @default("") @db.VarChar(100)
@@ -8079,7 +6160,7 @@ model rcloud_tupu_statistic {
   is_abroad      Boolean @default(false)
   env            Boolean @default(false)
   date           Int     @default(0)
-  conversation   String  @default("'") @db.VarChar(50)
+  conversation   String  @default("") @db.VarChar(50)
   type           String  @default("") @db.VarChar(20)
   tupu_app_id    String  @default("") @db.VarChar(100)
   tupu_task_id   String  @default("") @db.VarChar(100)
@@ -8099,29 +6180,19 @@ model rcloud_tupu_statistic {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_universal_key_value {
-  id          Int      @id @default(autoincrement())
-  category    String   @db.VarChar(255)
-  attname     String   @db.VarChar(255)
-  attvalue    String?  @db.LongText
-  description String?  @db.VarChar(255)
-  updated     DateTime @default(now()) @db.Timestamp(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_user {
   id                   Int       @id @default(autoincrement())
   name                 String    @default("") @db.VarChar(100)
   email                String    @default("") @db.VarChar(100)
   password             String    @default("") @db.Char(32)
   mobile               String    @default("") @db.VarChar(255)
-  login_ip             String    @default("") @db.VarChar(256)
+  login_ip             String    @default("") @db.VarChar(16)
   login_time           Int       @default(0)
   create_time          Int       @default(0)
   last_modified_time   DateTime? @default(now()) @db.Timestamp(0)
   status               Boolean   @default(false)
   login_count          Int       @default(0)
-  register_ip          String    @default("0") @db.VarChar(64)
+  register_ip          String    @default("0") @db.VarChar(16)
   ip_area              String    @default("") @db.VarChar(255)
   certify              Boolean   @default(false)
   certify_time         Int       @default(0)
@@ -8135,15 +6206,14 @@ model rcloud_user {
   certificate_lead     Boolean   @default(false)
   email_subscribe      Boolean   @default(false)
   is_vip               Int?      @default(2) @db.TinyInt
-  remark               String    @default("") @db.VarChar(255)
-  user_type            Int?      @default(0) @db.TinyInt
+  remark               String    @db.VarChar(255)
+  user_type            Int?      @default(1) @db.TinyInt
   sourceLink           String?   @default("") @db.VarChar(64)
   sourceKey            String    @default("") @db.VarChar(256)
   trajectoryId         String?   @default("") @db.VarChar(255)
   fromActive           String?   @db.VarChar(64)
   app_analysis_remark  String?   @db.Text
   register_method      Boolean   @default(false)
-  country_code         String    @default("86") @db.VarChar(7)
   country              String    @default("中国") @db.VarChar(64)
   qq                   String?   @default("") @db.VarChar(255)
   weixin               String?   @default("") @db.VarChar(255)
@@ -8153,14 +6223,10 @@ model rcloud_user {
   oem_management_email String?   @default("") @db.VarChar(60)
   public_cloud         Boolean?  @default(false)
   read_private         Boolean?  @default(false)
-  read_service_terms   Boolean?
   register_type        Int?      @default(0) @db.TinyInt
-  purpose              String?   @default("") @db.VarChar(20)
+  purpose              String    @default("") @db.VarChar(20)
   net_safe             Int       @default(0) @db.UnsignedTinyInt
   net_safe_time        Int       @default(0) @db.UnsignedInt
-  scope                String    @default("console.rongcloud.net") @db.VarChar(31)
-  official_site_url    String?   @db.Text
-  official_site_param  String?   @db.Text
 
   @@index([email], map: "index_email")
   @@index([mobile], map: "index_mobile")
@@ -8223,10 +6289,10 @@ model rcloud_user_account_record {
   audit_id     Int      @default(0)
   type         Int
   account_type Int      @default(1)
-  reason       String?  @db.Text
-  file         String   @default("") @db.VarChar(255)
+  reason       String   @db.Text
+  file         String   @db.VarChar(255)
   service_type Int      @default(0)
-  remark       String?  @db.Text
+  remark       String   @db.Text
   status       Int      @default(2) @db.TinyInt
   ctime        Int      @default(0)
   audit_time   Int      @default(0)
@@ -8254,25 +6320,25 @@ model rcloud_user_account_record {
 model rcloud_user_additional_info {
   id                     Int     @id @default(autoincrement())
   user_id                Int     @default(0) @db.UnsignedInt
-  wechat_source          String  @default("") @db.VarChar(50)
-  wechat_is_subscribe    Boolean @default(false)
-  wechat_subscribe_at    Int     @default(0)
-  wechat_unsubscribe_at  Int     @default(0)
-  wechat_subscribe_scene String  @default("") @db.VarChar(255)
-  wechat_nickname        String  @default("") @db.VarChar(255)
-  wechat_sex             Boolean @default(false)
-  wechat_province        String  @default("") @db.VarChar(255)
-  wechat_city            String  @default("") @db.VarChar(255)
-  wechat_country         String  @default("") @db.VarChar(255)
-  wechat_avatar          String  @default("") @db.VarChar(255)
-  wechat_union_id        String  @default("") @db.VarChar(255)
-  wechat_remark          String  @default("") @db.VarChar(255)
+  wechat_source          String  @db.VarChar(50)
+  wechat_is_subscribe    Boolean
+  wechat_subscribe_at    Int
+  wechat_unsubscribe_at  Int
+  wechat_subscribe_scene String  @db.VarChar(255)
+  wechat_nickname        String  @db.VarChar(255)
+  wechat_sex             Boolean
+  wechat_province        String  @db.VarChar(255)
+  wechat_city            String  @db.VarChar(255)
+  wechat_country         String  @db.VarChar(255)
+  wechat_avatar          String  @db.VarChar(255)
+  wechat_union_id        String  @db.VarChar(255)
+  wechat_remark          String  @db.VarChar(255)
   wechat_bind_at         Int
   study_list             String  @db.Text
   created_at             Int     @default(0) @db.UnsignedInt
   updated_at             Int     @default(0) @db.UnsignedInt
   deleted_at             Int?    @db.UnsignedInt
-  wechat_open_id         String? @default("") @db.VarChar(255)
+  wechat_open_id         String  @default("") @db.VarChar(255)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -8360,48 +6426,6 @@ model rcloud_user_developer_level {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_event_category {
-  id           Int     @id @default(autoincrement())
-  platform     String  @default("") @db.VarChar(64)
-  platform_cn  String  @default("") @db.VarChar(64)
-  name         String  @default("") @db.VarChar(64)
-  name_cn      String  @default("") @db.VarChar(128)
-  color        String? @default("") @db.VarChar(32)
-  icon         String? @default("") @db.VarChar(32)
-  operation    String? @db.Text
-  fields       String? @db.Text
-  url          String? @default("") @db.VarChar(512)
-  remarks      String? @default("") @db.VarChar(512)
-  confidential Int     @default(3)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_event_log {
-  id             Int       @id @default(autoincrement())
-  platform       String    @db.VarChar(64)
-  category_name  String    @db.VarChar(64)
-  operation      String?   @default("") @db.VarChar(255)
-  raw_id         String    @db.VarChar(128)
-  raw_param      String?   @default("") @db.VarChar(255)
-  user_id        Int
-  app_key        String?   @default("") @db.VarChar(32)
-  start_time     DateTime  @default(now()) @db.Timestamp(0)
-  end_time       DateTime? @db.Timestamp(0)
-  fields         String?   @db.LongText
-  remarks        String?   @db.LongText
-  related_person String?   @db.VarChar(64)
-  sync_source    String?   @db.VarChar(64)
-  update_time    DateTime? @db.Timestamp(0)
-
-  @@index([app_key], map: "ruel_app_key")
-  @@index([end_time], map: "ruel_end_time")
-  @@index([raw_id], map: "ruel_raw_id")
-  @@index([start_time], map: "ruel_start_time")
-  @@index([update_time], map: "ruel_update_time")
-  @@index([user_id], map: "ruel_user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_user_expand {
   id          Int     @id @default(autoincrement()) @db.UnsignedInt
   user_id     Int     @default(0) @db.UnsignedInt
@@ -8473,9 +6497,9 @@ model rcloud_user_first {
   update_time     Int     @default(0)
   remark          String? @default("") @db.VarChar(100)
   create_date     Int     @default(0)
-  app_create_date Int     @default(0)
   online_date     Int     @default(0)
   recharge_date   Int     @default(0)
+  app_create_date Int     @default(0)
 
   @@index([app_create_date], map: "app_create_date")
   @@index([create_date], map: "create_date")
@@ -8499,7 +6523,7 @@ model rcloud_user_follow_record {
   admin_id Int
   user_id  Int
   title    String  @db.VarChar(255)
-  content  String  @db.Text
+  content  String  @db.VarChar(255)
   ctime    Int
   item_id  String  @default("") @db.VarChar(25)
   money    Float   @default(0.00)
@@ -8545,7 +6569,7 @@ model rcloud_user_group_config {
   id           Int    @id @default(autoincrement()) @db.UnsignedInt
   type         Int    @default(0) @db.TinyInt
   col_type     Int    @default(0) @db.TinyInt
-  code         String @unique(map: "code") @default("") @db.VarChar(64)
+  code         String @default("") @db.VarChar(64)
   name         String @default("") @db.VarChar(256)
   compare_type String @default("") @db.VarChar(256)
   compare_val  String @default("") @db.VarChar(1024)
@@ -8556,24 +6580,6 @@ model rcloud_user_group_config {
   update_by    Int    @default(0)
   create_time  Int    @default(0)
   update_time  Int    @default(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_group_detail {
-  id                   Int    @id @default(autoincrement()) @db.UnsignedInt
-  user_group_id        Int    @default(0)
-  user_group_config_id Int    @default(0)
-  compare_type         String @default("") @db.VarChar(256)
-  compare_val          String @default("") @db.VarChar(256)
-  start_date           Int    @default(0)
-  end_date             Int    @default(0)
-  is_del               Int    @default(0) @db.TinyInt
-  create_by            Int    @default(0)
-  update_by            Int    @default(0)
-  create_time          Int    @default(0)
-  update_time          Int    @default(0)
-
-  @@index([user_group_id], map: "idx_user_group_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -8588,6 +6594,7 @@ model rcloud_user_group_item {
   update_time   Int @default(0)
 
   @@index([user_group_id], map: "idx_user_group_id")
+  @@index([user_id], map: "idx_user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -8596,25 +6603,6 @@ model rcloud_user_group_notice {
   user_group_id Int    @default(0)
   type          Int    @default(0) @db.TinyInt
   sms_type      Int    @default(0)
-  title         String @default("") @db.VarChar(256)
-  email_title   String @default("") @db.VarChar(256)
-  content       String @default("") @db.VarChar(256)
-  send_time     Int    @default(0)
-  state         Int    @default(0) @db.TinyInt
-  is_del        Int    @default(0) @db.TinyInt
-  create_by     Int    @default(0)
-  update_by     Int    @default(0)
-  create_time   Int    @default(0)
-  update_time   Int    @default(0)
-
-  @@index([user_group_id], map: "idx_user_group_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_group_notice_c {
-  id            Int    @id @default(autoincrement()) @db.UnsignedInt
-  user_group_id Int    @default(0)
-  type          Int    @default(0) @db.TinyInt
   title         String @default("") @db.VarChar(256)
   email_title   String @default("") @db.VarChar(256)
   content       String @db.Text
@@ -8640,6 +6628,7 @@ model rcloud_user_group_send_record {
   create_time          Int @default(0)
 
   @@index([email_queue_id], map: "idx_email_queue_id")
+  @@index([sms_log_id], map: "idx_sms_log_id")
   @@index([user_group_id], map: "idx_user_group_id")
 }
 
@@ -8649,7 +6638,7 @@ model rcloud_user_h5 {
   mobile      String? @db.VarChar(11)
   name        String? @db.VarChar(20)
   ctime       String? @db.VarChar(50)
-  register_ip String? @db.VarChar(256)
+  register_ip String? @db.VarChar(16)
   sourceLink  Bytes?  @db.VarBinary(64)
   sourceWord  Bytes?  @db.VarBinary(64)
   trajectory  String? @db.Text
@@ -8846,7 +6835,6 @@ model rcloud_user_mc_order_line {
 model rcloud_user_name_log {
   id       Int     @id @default(autoincrement())
   user_id  Int?
-  type     Int     @default(1) @db.TinyInt
   name_new String? @db.VarChar(60)
   name_log String? @db.VarChar(60)
   ctime    Int?
@@ -8878,27 +6866,11 @@ model rcloud_user_service {
   status  Boolean @default(true)
   env     Int     @default(2) @db.TinyInt
   source  Boolean @default(false)
-  config  String  @default("") @db.VarChar(2000)
+  config  String  @default("") @db.VarChar(500)
 
   @@index([app_id], map: "app_id")
-  @@index([user_id, app_id, status], map: "indexs")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_service_copy1 {
-  id      Int     @id @default(autoincrement())
-  user_id Int
-  app_id  Int
-  server  Int
-  ctime   Int
-  cltime  Int?
-  status  Boolean @default(true)
-  env     Int     @default(2) @db.TinyInt
-  source  Boolean @default(false)
-  config  String  @default("") @db.VarChar(2000)
-
-  @@index([app_id], map: "app_id")
+  @@index([ctime], map: "ctime")
+  @@index([ctime, user_id], map: "idx_ctime_user")
   @@index([user_id, app_id, status], map: "indexs")
   @@index([user_id], map: "user_id")
 }
@@ -8929,52 +6901,7 @@ model rcloud_user_service_first {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_service_first_copy {
-  id            Int     @id @default(autoincrement()) @db.UnsignedInt
-  user_id       Int     @default(0) @db.UnsignedInt
-  app_id        Int     @default(0) @db.UnsignedInt
-  server_id     Int     @default(0)
-  service       Int     @default(0)
-  open_date     Int     @default(0)
-  order_date    Int     @default(0)
-  charging_date Int     @default(0)
-  create_date   Int     @default(0)
-  update_time   Int     @default(0)
-  create_time   Int     @default(0)
-  remark        String? @default("") @db.VarChar(100)
-
-  @@index([app_id], map: "app_id")
-  @@index([charging_date], map: "charging_date")
-  @@index([create_date], map: "create_date")
-  @@index([open_date], map: "open_date")
-  @@index([order_date], map: "order_date")
-  @@index([server_id], map: "server_id")
-  @@index([service], map: "service")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_user_service_free {
-  id          Int     @id @default(autoincrement()) @db.UnsignedInt
-  user_id     Int     @default(0)
-  admin_id    Int
-  app_id      Int     @default(0)
-  service     Int     @default(0)
-  type        Int     @default(0)
-  config      String? @db.Text
-  remark      String  @default("") @db.VarChar(500)
-  reason      String  @db.VarChar(500)
-  file_path   String  @default("") @db.VarChar(255)
-  status      Boolean @default(false)
-  create_time Int     @default(0)
-  update_time Int
-
-  @@index([app_id], map: "app_id")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_service_free_copy {
   id          Int     @id @default(autoincrement()) @db.UnsignedInt
   user_id     Int     @default(0)
   admin_id    Int
@@ -9011,41 +6938,20 @@ model rcloud_user_service_give_activity {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_service_log {
-  id          Int     @id @default(autoincrement()) @db.UnsignedInt
-  user_id     Int     @default(0) @db.UnsignedInt
-  admin_id    Int     @default(0)
-  create_time Int     @default(0)
-  ip          String  @default("") @db.Char(15)
-  action      Int     @default(0)
-  url         String  @default("") @db.VarChar(255)
-  content     String  @default("") @db.VarChar(2000)
-  app_id      Int     @default(0)
-  env         Boolean @default(false)
-  server      Int     @default(0)
-  mark        String  @default("") @db.VarChar(255)
-  new_data    String? @db.LongText
-  old_data    String? @db.LongText
-
-  @@index([app_id], map: "app_id")
-  @@index([user_id], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_user_service_operation_log {
   id         Int      @id @default(autoincrement()) @db.UnsignedInt
   user_id    Int      @db.UnsignedInt
   app_id     Int      @db.UnsignedInt
   env        Int      @db.UnsignedTinyInt
   service_id Int      @db.UnsignedInt
-  admin_id   Int      @default(0) @db.UnsignedInt
+  admin_id   Int      @db.UnsignedInt
   operation  Int      @db.UnsignedTinyInt
   ip         String   @db.VarChar(255)
   config     String   @db.Text
-  loop       Boolean  @default(false)
+  loop       Boolean
   status     Int      @default(1) @db.UnsignedTinyInt
   source     Boolean?
-  queue      String   @default("") @db.VarChar(50)
+  queue      String   @db.VarChar(50)
   created_at Int      @db.UnsignedInt
   updated_at Int      @db.UnsignedInt
   deleted_at Int?
@@ -9078,34 +6984,21 @@ model rcloud_user_service_order {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_user_service_record {
-  id         Int     @id @default(autoincrement())
-  uid        Int
-  app_id     Int
-  env        Boolean
-  admin_id   Int     @default(0)
-  rc_user_id BigInt? @default(0)
-  server     Int
-  action     Int     @db.TinyInt
-  content    String? @default("") @db.VarChar(10000)
-  ctime      Int
-  ip         String  @default("") @db.VarChar(16)
-  new_data   String  @db.Text
-  old_data   String  @db.Text
+  id       Int     @id @default(autoincrement())
+  uid      Int
+  app_id   Int
+  env      Boolean
+  admin_id Int     @default(0)
+  server   Int
+  action   Int     @db.TinyInt
+  content  String  @db.VarChar(10000)
+  ctime    Int
+  ip       String  @default("") @db.VarChar(16)
+  new_data String? @db.Text
+  old_data String? @db.Text
 
   @@index([app_id], map: "app_id")
   @@index([uid], map: "user_id")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_user_service_status_check {
-  id              Int       @id @default(autoincrement())
-  appId           Int?
-  config_items    String?   @db.Text
-  frequency_items String?   @db.Text
-  config_count    Int?
-  frequency_count Int?
-  date            Int?
-  create_time     DateTime? @default(now()) @db.Timestamp(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -9247,7 +7140,7 @@ model rcloud_vip_support {
   user_id            Int     @default(0) @db.UnsignedInt
   app_id             Int     @default(0) @db.UnsignedInt
   mobile             String  @default("") @db.VarChar(20)
-  qq                 String  @default("0") @db.VarChar(64)
+  qq                 String  @default("0") @db.VarChar(20)
   group_id           String  @default("") @db.VarChar(20)
   group_name         String  @default("") @db.VarChar(30)
   group_type         Int     @default(1) @db.UnsignedTinyInt
@@ -9294,6 +7187,8 @@ model rcloud_website_content {
   admin_id             Int     @default(0)
   type                 Int     @default(0) @db.TinyInt
   relation_website_ids String  @default("") @db.VarChar(255)
+
+  @@index([url], map: "url")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -9379,80 +7274,6 @@ model rcloud_wechat_subscribe_log {
   deleted_at Int?
 }
 
-model rcloud_wework_customer {
-  id               Int    @id @default(autoincrement()) @db.UnsignedInt
-  external_userid  String @default("") @db.VarChar(255)
-  name             String @default("") @db.VarChar(255)
-  avatar           String @default("") @db.VarChar(255)
-  type             Int    @default(0) @db.UnsignedTinyInt
-  gender           Int    @default(0) @db.UnsignedTinyInt
-  unionid          String @default("") @db.VarChar(255)
-  position         String @default("") @db.VarChar(255)
-  corp_name        String @default("") @db.VarChar(255)
-  corp_full_name   String @default("") @db.VarChar(255)
-  external_profile String @db.Text
-  follow_user      String @db.Text
-  is_deleted       Int    @default(0) @db.UnsignedTinyInt
-  created_at       Int    @default(0) @db.UnsignedInt
-  updated_at       Int    @default(0) @db.UnsignedInt
-  deleted_at       Int?
-}
-
-model rcloud_wework_department {
-  id            Int    @id @default(autoincrement()) @db.UnsignedInt
-  department_id Int    @default(0) @db.UnsignedInt
-  name          String @default("") @db.Char(32)
-  name_en       String @default("") @db.Char(32)
-  parentid      Int    @default(0) @db.UnsignedInt
-  order         Int    @default(0) @db.UnsignedInt
-  is_deleted    Int    @default(0) @db.UnsignedTinyInt
-  created_at    Int    @default(0) @db.UnsignedInt
-  updated_at    Int    @default(0) @db.UnsignedInt
-  deleted_at    Int?
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model rcloud_wework_events {
-  id         Int    @id @default(autoincrement()) @db.UnsignedInt
-  content    String @db.Text
-  status     Int    @default(0) @db.UnsignedTinyInt
-  created_at Int    @default(0) @db.UnsignedInt
-  updated_at Int    @default(0) @db.UnsignedInt
-  deleted_at Int?
-}
-
-model rcloud_wework_user {
-  id                Int    @id @default(autoincrement()) @db.UnsignedInt
-  userid            String @default("") @db.Char(64)
-  name              String @default("") @db.VarChar(255)
-  mobile            String @default("") @db.Char(11)
-  department        String @default("") @db.VarChar(255)
-  order             String @default("") @db.VarChar(255)
-  position          String @default("") @db.VarChar(255)
-  gender            Int    @default(0) @db.UnsignedTinyInt
-  email             String @default("") @db.VarChar(255)
-  is_leader_in_dept String @default("") @db.VarChar(255)
-  avatar            String @default("") @db.VarChar(255)
-  thumb_avatar      String @default("") @db.VarChar(255)
-  telephone         String @default("") @db.VarChar(255)
-  alias             String @default("") @db.VarChar(255)
-  extattr           String @db.Text
-  status            Int    @default(0) @db.UnsignedTinyInt
-  qr_code           String @default("") @db.VarChar(255)
-  external_profile  String @db.Text
-  external_position String @default("") @db.VarChar(255)
-  address           String @default("") @db.VarChar(255)
-  open_userid       String @default("") @db.VarChar(255)
-  main_department   Int    @default(0) @db.UnsignedInt
-  isleader          Int    @default(0) @db.UnsignedTinyInt
-  enable            Int    @default(0) @db.UnsignedTinyInt
-  hide_mobile       Int    @default(0) @db.UnsignedTinyInt
-  is_deleted        Int    @default(0) @db.UnsignedTinyInt
-  created_at        Int    @default(0) @db.UnsignedInt
-  updated_at        Int    @default(0) @db.UnsignedInt
-  deleted_at        Int?
-}
-
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_white_user {
   id            Int     @id @default(autoincrement())
@@ -9473,7 +7294,7 @@ model rcloud_whiteboard_statistic {
   id           Int      @id @default(autoincrement())
   user_id      Int      @default(0)
   app_id       Int      @default(0)
-  server_id    Int
+  server_id    Int      @default(0)
   env          Boolean  @default(false)
   is_abroad    Int      @default(0) @db.UnsignedTinyInt
   service_type Int      @default(0)
@@ -9535,15 +7356,16 @@ model rcloud_wx_template_message {
 model rcloud_wx_template_message_item {
   id                     Int    @id @default(autoincrement()) @db.UnsignedInt
   wx_template_message_id Int    @default(0)
-  wx_msg_id              String @default("") @db.VarChar(32)
   user_id                Int    @default(0)
   open_id                String @default("") @db.VarChar(128)
+  wx_msg_id              String @default("") @db.VarChar(32)
   status                 Int    @default(0) @db.TinyInt
   send_fail_reason       String @default("") @db.VarChar(256)
   create_time            Int    @default(0)
   update_time            Int    @default(0)
 
   @@index([user_id], map: "idx_user_id")
+  @@index([wx_msg_id], map: "idx_wx_msg_id")
   @@index([wx_template_message_id], map: "idx_wx_template_message_id")
 }
 
@@ -9770,22 +7592,21 @@ model rcloud_yunshangqulv_project {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rcloud_yunshangqulv_statistic {
-  id            Int     @id @default(autoincrement())
-  user_id       Int     @default(0)
-  app_id        Int     @default(0)
-  rcloud_app_id Int?    @default(0)
-  is_abroad     Boolean @default(false)
-  env           Boolean @default(false)
-  date          Int     @default(0)
-  project_id    String  @db.VarChar(10)
-  rule_type     String  @default("") @db.VarChar(20)
-  item_id       Int
-  item_name     String  @db.VarChar(50)
-  value         Int     @default(0)
-  pay_value     Int     @default(0)
-  money         Decimal @default(0.0000) @db.Decimal(12, 4)
-  created_at    Int     @default(0)
-  updated_at    Int     @default(0)
+  id         Int     @id @default(autoincrement())
+  user_id    Int     @default(0)
+  app_id     Int     @default(0)
+  is_abroad  Boolean @default(false)
+  env        Boolean @default(false)
+  date       Int     @default(0)
+  project_id String  @db.VarChar(10)
+  rule_type  String  @default("") @db.VarChar(20)
+  item_id    Int
+  item_name  String  @db.VarChar(50)
+  value      Int     @default(0)
+  pay_value  Int     @default(0)
+  money      Decimal @db.Decimal(12, 4)
+  created_at Int     @default(0)
+  updated_at Int     @default(0)
 
   @@index([app_id], map: "app_id")
   @@index([date], map: "date")
@@ -9815,22 +7636,6 @@ model service_app {
   created_at   Int    @default(0) @db.UnsignedInt
   updated_at   Int    @default(0) @db.UnsignedInt
   deleted_at   Int    @default(0) @db.UnsignedInt
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model service_audit_log {
-  id             BigInt  @id @default(autoincrement()) @db.UnsignedBigInt
-  user_pool_id   Int     @default(0) @db.UnsignedInt
-  application_id Int     @default(0) @db.UnsignedInt
-  user_id        Int     @default(0) @db.UnsignedInt
-  url            String  @default("") @db.VarChar(500)
-  ip             String  @default("") @db.VarChar(50)
-  action         Int     @default(0) @db.UnsignedTinyInt
-  created_at     Int     @default(0) @db.UnsignedInt
-  content        String? @db.Text
-
-  @@index([user_id], map: "service_resource_owner_resource_id_index")
-  @@index([application_id], map: "service_resource_owner_target_id_index")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -9898,7 +7703,6 @@ model service_role {
   deleted_at   Int    @default(0) @db.UnsignedInt
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model service_type {
   id      Int     @id @db.UnsignedInt
   name    String? @db.VarChar(32)
@@ -9946,32 +7750,6 @@ model service_user_pool {
   created_at  Int    @default(0) @db.UnsignedInt
   updated_at  Int    @default(0) @db.UnsignedInt
   deleted_at  Int    @default(0) @db.UnsignedInt
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model service_user_role {
-  id         Int  @id @default(autoincrement()) @db.UnsignedInt
-  user_id    Int  @default(0) @db.UnsignedInt
-  role_id    Int  @default(0) @db.UnsignedInt
-  status     Int? @default(0) @db.UnsignedTinyInt
-  created_at Int  @default(0) @db.UnsignedInt
-  updated_at Int  @default(0) @db.UnsignedInt
-  deleted_at Int  @default(0) @db.UnsignedInt
-
-  @@index([user_id], map: "service_user_role_user_id_index")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model service_user_user_group {
-  id            Int  @id @default(autoincrement()) @db.UnsignedInt
-  user_id       Int  @default(0) @db.UnsignedInt
-  user_group_id Int  @default(0) @db.UnsignedInt
-  status        Int? @default(0) @db.UnsignedTinyInt
-  created_at    Int  @default(0) @db.UnsignedInt
-  updated_at    Int  @default(0) @db.UnsignedInt
-  deleted_at    Int  @default(0) @db.UnsignedInt
-
-  @@index([user_id], map: "service_user_user_group_user_id_index")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -10222,24 +8000,22 @@ model tmp_appservice {
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model tmp_dts {
-  id Int?
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tmp_b_conf_service {
+  code        Int
+  name        String  @db.VarChar(45)
+  ordersCount String  @default("1") @db.Char(2)
+  company     String  @default("RY") @db.VarChar(45)
+  userOrApp   String  @default("u") @db.Char(2)
+  description String? @db.VarChar(100)
 
   @@ignore
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model tmp_dts2 {
-  id Int?
-
-  @@ignore
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model tmp_dts3 {
-  id Int?
-
-  @@ignore
+model tmp_cdn_code {
+  id     Int     @id @default(autoincrement())
+  userId String? @db.VarChar(10)
+  itemId String? @db.VarChar(10)
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -10324,6 +8100,20 @@ model tmp_redbao {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model tmp_rtc_shumei_charge {
+  id          Int      @id @default(autoincrement())
+  orderNo     String?  @db.VarChar(50)
+  userId      String?  @db.VarChar(50)
+  itemId      String?  @db.VarChar(50)
+  appId       String?  @db.VarChar(50)
+  service     String?  @db.VarChar(50)
+  charge      String?  @db.VarChar(50)
+  money       Decimal? @db.Decimal(10, 2)
+  chargeMoney Decimal? @db.Decimal(10, 2)
+  date        Int?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tmp_rtc_shumei_charge_copy1 {
   id          Int      @id @default(autoincrement())
   orderNo     String?  @db.VarChar(50)
   userId      String?  @db.VarChar(50)
@@ -10425,6 +8215,61 @@ model tmp_vip {
 
   @@index([app_id], map: "app_id")
   @@index([created], map: "created")
+  @@index([item_id], map: "item_id")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tmp_vip1 {
+  app_id          Int
+  created         Int?
+  online          Int?
+  hour            Int?
+  second          Int?
+  size            Float?
+  noChatroomSize  Float?
+  second_all      Int?
+  hour_all        Int?
+  groupOnline     Int?
+  message_server  BigInt?
+  chatroom_server BigInt?
+  chatroom_down   BigInt?
+  roomSize        Float?
+  groupSize       Float?
+  item_id         Int?
+  appname         String? @db.VarChar(255)
+  username        String? @db.VarChar(255)
+
+  @@index([app_id], map: "app_id")
+  @@index([created], map: "created")
+  @@index([item_id], map: "item_id")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tmp_vip_copy {
+  app_id            Int
+  created           Int?
+  online            Int?
+  hour              Int?
+  second            Int?
+  roomSize          Float?
+  groupSize         Float?
+  sizeOld           Float?
+  noChatroomSizeOld Float?
+  second_all        Int?
+  hour_all          Int?
+  groupOnline       Int?
+  message_server    BigInt?
+  chatroom_server   BigInt?
+  tally             BigInt?
+  item_id           Int?
+  appname           String? @db.VarChar(255)
+  username          String? @db.VarChar(255)
+
+  @@index([app_id], map: "app_id")
+  @@index([created], map: "created")
+  @@index([item_id], map: "item_id")
   @@ignore
 }
 
@@ -10511,7 +8356,6 @@ model tpcloud_cdn_flow_statistic {
   pull_time    BigInt
 
   @@index([app_id], map: "app_id")
-  @@index([pull_date], map: "idx_date")
   @@index([user_id], map: "user_id")
 }
 
@@ -10546,7 +8390,6 @@ model tpcloud_cdn_peak_statistic {
   update_time  DateTime @default(now()) @db.DateTime(0)
 
   @@index([app_id], map: "app_id")
-  @@index([pull_date], map: "idx_date")
   @@index([user_id], map: "user_id")
 }
 
@@ -10580,7 +8423,6 @@ model tpcloud_cdn_transcoding_statistic {
   pull_time    BigInt
 
   @@index([app_id], map: "app_id")
-  @@index([pull_date], map: "idx_date")
   @@index([user_id], map: "user_id")
 }
 
@@ -10619,38 +8461,6 @@ model user_custome_record {
   @@index([user_id], map: "ix_user_id")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model wx_chat_data {
-  id      Int     @id @default(autoincrement())
-  seq     BigInt?
-  msgid   String? @default("") @db.VarChar(255)
-  action  String? @default("") @db.VarChar(255)
-  roomid  String? @default("") @db.VarChar(255)
-  data    String? @db.LongText
-  img     String? @db.LongText
-  msgtime BigInt?
-
-  @@index([msgtime], map: "wx_c_msgtime")
-  @@index([roomid], map: "wx_c_roomid")
-  @@index([seq(sort: Desc)], map: "wx_c_seq")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model wx_group {
-  id           Int     @id @default(autoincrement())
-  chatid       String  @default("") @db.VarChar(255)
-  chatname     String? @db.VarChar(255)
-  notice       String? @db.Text
-  owner        String? @db.VarChar(255)
-  member_list  String? @db.LongText
-  uid          Int?
-  create_time  BigInt?
-  new_msg_time BigInt?
-
-  @@index([chatid], map: "wx_g_chatid")
-  @@index([new_msg_time(sort: Desc)], map: "wx_g_new_msg_time")
-}
-
 model xjp_cc_exclusivelog {
   id          Int       @id @default(autoincrement())
   appId       String    @db.VarChar(45)
@@ -10670,36 +8480,6 @@ model z_android_package {
   env          Boolean?
   user_id      Int?
   cooperate_id Int?
-}
-
-enum popc_notice_subscription_template_type {
-  announcement
-  finance
-  product
-  activity
-  security
-  ticket
-  other
-}
-
-enum popc_notice_template_type {
-  announcement
-  finance
-  product
-  activity
-  security
-  ticket
-  other
-}
-
-enum popc_notice_inbox_type {
-  announcement
-  finance
-  product
-  activity
-  security
-  ticket
-  other
 }
 
 enum rcloud_red_account_old_or_new {
