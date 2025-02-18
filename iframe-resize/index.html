@@ -5,15 +5,13 @@
     margin-top: 200px;
   }
 </style>
-<script
-  src="./iframeResizer.js"
-  type="text/javascript"
-  
-></script>
-<iframe id="myIframe" src="http://127.0.0.1:5500/child.html"></iframe>
+<script src="./iframeResizer.js" type="text/javascript"></script>
+<iframe
+  id="myIframe"
+  src="http://127.0.0.1:5501/iframe-resize/child.html"
+></iframe>
 <script>
-  
- const iframes =  window.iFrameResize(
+  const iframes = window.iFrameResize(
     {
       // log: true, // Enable
       inPageLinks: true,
@@ -23,14 +21,18 @@
       waitForLoad: true,
       onMouseEnter() {
         console.log("mouseenter");
-        iframes[0].iFrameResizer.sendMessage("hello")
+        iframes[0].iFrameResizer.sendMessage({
+          type: "mouseenter",
+          data: {
+            name: "mouseenter",
+          },
+        });
       },
-      onMessage(e){
-        console.log('接受到消息',e);
-      }
+      onMessage(e) {
+        console.log("接受到消息", e);
+      },
     },
     "#myIframe"
   );
   console.log(iframes);
-  
 </script>

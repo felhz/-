@@ -19,6 +19,8 @@ function useNavbarItems() {
 }
 
 function NavbarItems({ items }: { items: NavbarItemConfig[] }): JSX.Element {
+  console.log(items, 11);
+
   return (
     <>
       {items.map((item, i) => (
