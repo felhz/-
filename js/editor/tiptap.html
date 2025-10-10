@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+        body{
+            background-color: #f8faff;
+        }
+      .element {
+        width: calc(100% - 40px);
+        padding: 20px;
+        background-color: #fff;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+    
+      .wp-block-image{
+        max-width: 100%;
+        margin-bottom: 1em;
+        margin-left: 0;
+        margin-right: 0
+      }
+      .wp-block-image img {
+        width: 100%;
+        height: auto;
+        
+      }
+    </style>
+  </head>
+  <body>
+    <div class="element"></div>
+    <script type="module">
+      import { Editor, Node, mergeAttributes  } from 'https://esm.sh/@tiptap/core'
+      import StarterKit from 'https://esm.sh/@tiptap/starter-kit'
+      // 支持图片
+      import { Image } from 'https://esm.sh/@tiptap/extension-image'
+      const Figcaption = Node.create({
+        name: 'figcaption',
+
+        group: 'block',
+        content: 'inline*',
+
+        parseHTML() {
+            return [{ tag: 'figcaption' }]
+        },
+
+        renderHTML({ HTMLAttributes }) {
+            return ['figcaption', mergeAttributes(HTMLAttributes), 0]
+        },
+        })
+        // 支持class 
+        const figure = Node.create({
+            name: 'figure',
+            group: 'block',
+            content: 'image figcaption?',
+            draggable: true,
+            addAttributes() {
+                return {
+                    class: {
+                        default: 'wp-block-image',
+                    },
+                }
+            },
+            parseHTML() {
+                return [{ tag: 'figure' }]
+            },
+
+            renderHTML({ HTMLAttributes }) {
+                return ['figure', mergeAttributes(HTMLAttributes), 0]
+            },
+      })
+      const editor = new Editor({
+        editorProps: {
+          attributes: {
+            class: 'element',
+          },
+        },
+        element: document.querySelector('.element'),
+        extensions: [StarterKit, Image, figure, Figcaption],
+      
+        content: `<!-- wp:paragraph -->
+<p>8 月 21 日，融云北京总部迎来重要访客——中国通信工业协会城乡建设数字化专业委员会（以下简称“专委会”）主要领导及专家代表团到访交流。双方围绕通信云技术在城乡数字化建设、企业协同、国家安全与出海业务等领域的应用前景与合作路径展开了深度沟通。</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>本次座谈会由专委会牵头组织，来自内江市招商局、中国移动、中国联通、中国航天系统工程、中建方程、中铁建建筑科技、东华软件等多方代表参加。融云首席科学家任杰、CTO 岑裕、政企业务线负责人何亮等代表公司接待。</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":11585} -->
+<figure class="wp-block-image"><img src="https://blog.rongcloud.cn/wp-content/uploads/2025/08/89d0d5a2-2450-4e45-8944-514c9a2272c8-1024x768.png" alt="" class="wp-image-11585"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>座谈会上，融云首席科学家任杰系统地介绍了公司的发展历程与业务布局。当前，融云正积极推进 AI 与通信技术的结合，包括 AI 聊天机器人、AI 智能回复、智能翻译、AI 办公助手、数字孪生等应用逐渐落地，显著提升政企办公与全球社交场景的智能化水平。</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>融云政企业务解决方案中心史超进一步分享了公司在政务、医疗、制造、金融等领域的落地案例，如中国电信“量子密信”、某大型银行客服系统等，充分体现了融云在支持大型组织数字化转型中的技术实力与服务经验。</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>专委会及各参会单位代表纷纷发言，就通信云与垂直行业融合、AI 赋能、智慧城市、出海合作等议题及相关合作机会进行了深度沟通。双方一致认为，技术与场景的深度融合是推动数字化落地的关键，未来存在巨大的合作空间。</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":11588} -->
+<figure class="wp-block-image"><img src="https://blog.rongcloud.cn/wp-content/uploads/2025/08/d4b9a1cc-3805-4ab4-9037-b3733929c3c5-2-1024x768.png" alt="" class="wp-image-11588"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:image {"id":11590} -->
+<figure class="wp-block-image"><img src="https://blog.rongcloud.cn/wp-content/uploads/2025/08/b43210f4-8a28-4579-81f7-4f62f8680a0f-1.png" alt="" class="wp-image-11590"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>中国通信工业协会隶属工业和信息化部，“城乡建设数字化专业委员会”是其下属分支，专注于利用通信和信息技术推动城乡建设的数字化、智能化转型。</p>
+<!-- /wp:paragraph -->`,
+      })
+    </script>
+  </body>
+</html>
